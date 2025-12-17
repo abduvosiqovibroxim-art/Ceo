@@ -1,0 +1,66 @@
+name: Load Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to test'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+      duration:
+        description: 'Test duration (seconds)'
+        required: true
+        default: '60'
+      connections:
+        description: 'Concurrent connections'
+        required: true
+        default: '100'
+
+jobs:
+  load-test:
+    name: Run Load Tests
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install hey
+        run: |
+          wget https://hey-release.s3.us-east-2.amazonaws.com/hey_linux_amd64
+          chmod +x hey_linux_amd64
+          sudo mv hey_linux_amd64 /usr/local/bin/hey
+
+      - name: Set API URL
+        id: url
+        run: |
+          if [ "${{ github.event.inputs.environment }}" == "production" ]; then
+            echo "api_url=https://api.stario.uz" >> $GITHUB_OUTPUT
+          else
+            echo "api_url=https://api-staging.stario.uz" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run health check load test
+        run: |
+          hey -z ${{ github.event.inputs.duration }}s \
+              -c ${{ github.event.inputs.connections }} \
+              ${{ steps.url.outputs.api_url }}/health
+
+      - name: Run API benchmark
+        run: |
+          echo "=== Face Similarity Benchmark ==="
+          hey -z 30s -c 50 \
+              -m POST \
+              -H "Content-Type: application/json" \
+              -d '{"user_image_url":"test.jpg","artist_image_url":"artist.jpg","artist_id":"test"}' \
+              ${{ steps.url.outputs.api_url }}/face-similarity/compare || true
+
+      - name: Generate report
+        run: |
+          echo "Load test completed for ${{ github.event.inputs.environment }}"
+          echo "Duration: ${{ github.event.inputs.duration }}s"
+          echo "Connections: ${{ github.event.inputs.connections }}"

@@ -1,0 +1,216 @@
+{
+  "common": {
+    "home": "Главная",
+    "artists": "Артисты",
+    "shop": "Магазин",
+    "profile": "Профиль",
+    "cart": "Корзина",
+    "seeAll": "Все",
+    "createNow": "Создать",
+    "loading": "Загрузка...",
+    "error": "Ошибка",
+    "retry": "Повторить",
+    "cancel": "Отмена",
+    "confirm": "Подтвердить",
+    "save": "Сохранить",
+    "delete": "Удалить",
+    "edit": "Редактировать",
+    "back": "Назад",
+    "next": "Далее",
+    "submit": "Отправить",
+    "search": "Поиск",
+    "noResults": "Ничего не найдено",
+    "language": "Язык",
+    "yes": "Да",
+    "no": "Нет"
+  },
+  "home": {
+    "title": "Создавайте волшебные моменты с любимыми артистами",
+    "subtitle": "Персонализированные поздравления, викторины и многое другое с помощью ИИ",
+    "featuredArtists": "Популярные артисты",
+    "specialOffer": "Специальное предложение!",
+    "offerDescription": "Скидка 20% на ваш первый Stario Moment"
+  },
+  "features": {
+    "starioMoment": {
+      "name": "Stario Moment",
+      "description": "Получите персональное видео-поздравление от любимого артиста"
+    },
+    "faceQuiz": {
+      "name": "Face Quiz",
+      "description": "Узнайте, на какого артиста вы похожи больше всего"
+    },
+    "posterMaker": {
+      "name": "Poster Maker",
+      "description": "Создавайте постеры с артистами с помощью ИИ"
+    },
+    "voiceQuiz": {
+      "name": "Voice Quiz",
+      "description": "Сможете отличить голос ИИ от настоящего?"
+    }
+  },
+  "artists": {
+    "title": "Артисты",
+    "subtitle": "Узбекские звёзды эстрады",
+    "verified": "Подтверждён",
+    "followers": "подписчиков",
+    "videos": "Видео",
+    "about": "Об артисте",
+    "aboutArtist": "Об артисте",
+    "popular": "Популярные",
+    "searchPlaceholder": "Поиск артистов...",
+    "found": "Найдено",
+    "artist": "артист",
+    "artists_few": "артиста",
+    "artists_many": "артистов",
+    "all": "Все",
+    "men": "Мужчины",
+    "women": "Женщины",
+    "byPopularity": "По популярности",
+    "byName": "По имени",
+    "noResults": "Артисты не найдены",
+    "resetFilters": "Сбросить фильтры",
+    "wantVideo": "Хочешь видео от звезды?",
+    "orderPersonalized": "Закажи персональное AI поздравление",
+    "order": "Заказать",
+    "orderVideo": "Заказать видео",
+    "addToFavorites": "В избранное",
+    "showMore": "Показать ещё",
+    "profile": "Профиль артиста",
+    "gender": "Пол",
+    "category": "Категория",
+    "price": "Цена",
+    "status": {
+      "active": "Активен",
+      "pending": "На проверке",
+      "suspended": "Приостановлен"
+    },
+    "categories": {
+      "pop": "Поп",
+      "traditional": "Традиционная",
+      "rap": "Рэп",
+      "rock": "Рок"
+    }
+  },
+  "createMoment": {
+    "title": "Создайте свой Moment",
+    "selectArtist": "Выберите артиста",
+    "top10Artists": "Топ-10 артистов Узбекистана",
+    "viewAllArtists": "Все артисты",
+    "occasion": "Повод для поздравления",
+    "recipientName": "Имя получателя",
+    "enterName": "Введите имя",
+    "message": "Ваше сообщение",
+    "messagePlaceholder": "Напишите, что должен сказать артист...",
+    "createMessage": "Создайте сообщение",
+    "reviewOrder": "Проверьте заказ",
+    "video": "Видео",
+    "to": "Кому",
+    "videoPrice": "Стоимость видео",
+    "serviceFee": "Сервисный сбор",
+    "payNow": "Оплатить",
+    "orderNow": "Заказать",
+    "price": "Цена",
+    "steps": {
+      "chooseArtist": "Выбор артиста",
+      "writeMessage": "Сообщение",
+      "reviewPay": "Оплата"
+    },
+    "occasions": {
+      "birthday": "День рождения",
+      "congratulations": "Поздравление",
+      "thankYou": "Благодарность",
+      "getWell": "Выздоравливай",
+      "justBecause": "Просто так",
+      "holiday": "Праздник"
+    }
+  },
+  "faceQuiz": {
+    "title": "Face Quiz",
+    "subtitle": "Загрузите фото и узнайте, на какого артиста вы похожи!",
+    "uploadPhoto": "Загрузить фото",
+    "takePhoto": "Сделать фото",
+    "analyzing": "Анализируем ваше лицо...",
+    "result": "Вы похожи на",
+    "similarity": "сходство",
+    "tryAgain": "Попробовать снова",
+    "share": "Поделиться"
+  },
+  "voiceQuiz": {
+    "title": "Voice Quiz",
+    "subtitle": "Сможете отличить голос ИИ от настоящего?",
+    "listen": "Слушать",
+    "isReal": "Это настоящий голос?",
+    "real": "Настоящий",
+    "ai": "ИИ",
+    "correct": "Верно!",
+    "wrong": "Неверно!",
+    "score": "Счёт",
+    "playAgain": "Играть снова"
+  },
+  "posterMaker": {
+    "title": "ИИ Постер Мейкер",
+    "subtitle": "Создавайте потрясающие постеры с любимыми артистами",
+    "selectStyle": "Выберите стиль",
+    "enterPrompt": "Введите вашу идею",
+    "generate": "Создать постер",
+    "generating": "Создаём...",
+    "download": "Скачать",
+    "share": "Поделиться"
+  },
+  "merch": {
+    "title": "Магазин мерча",
+    "categories": "Категории",
+    "all": "Все",
+    "clothing": "Одежда",
+    "accessories": "Аксессуары",
+    "posters": "Постеры",
+    "addToCart": "В корзину",
+    "outOfStock": "Нет в наличии",
+    "size": "Размер",
+    "color": "Цвет"
+  },
+  "cart": {
+    "title": "Корзина",
+    "empty": "Корзина пуста",
+    "continueShopping": "Продолжить покупки",
+    "subtotal": "Подытог",
+    "shipping": "Доставка",
+    "total": "Итого",
+    "checkout": "Оформить заказ",
+    "remove": "Удалить",
+    "quantity": "Количество"
+  },
+  "checkout": {
+    "title": "Оформление заказа",
+    "shippingInfo": "Информация о доставке",
+    "paymentMethod": "Способ оплаты",
+    "orderSummary": "Ваш заказ",
+    "placeOrder": "Оформить заказ",
+    "fullName": "ФИО",
+    "phone": "Телефон",
+    "address": "Адрес",
+    "city": "Город",
+    "card": "Банковская карта",
+    "cash": "Наличные при получении"
+  },
+  "profile": {
+    "title": "Профиль",
+    "myOrders": "Мои заказы",
+    "myContent": "Мой контент",
+    "settings": "Настройки",
+    "logout": "Выйти",
+    "login": "Войти",
+    "register": "Регистрация",
+    "editProfile": "Редактировать профиль"
+  },
+  "myContent": {
+    "title": "Мой контент",
+    "videos": "Видео",
+    "posters": "Постеры",
+    "quizResults": "Результаты викторин",
+    "download": "Скачать",
+    "share": "Поделиться",
+    "empty": "Вы ещё не создали контент"
+  }
+}

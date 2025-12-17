@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: video-gen
+  namespace: stario
+  labels:
+    app: video-gen
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: video-gen
+  template:
+    metadata:
+      labels:
+        app: video-gen
+    spec:
+      # GPU node selector for production
+      # nodeSelector:
+      #   gpu: "true"
+      containers:
+        - name: video-gen
+          image: ghcr.io/stario/video-gen:latest
+          ports:
+            - containerPort: 8002
+          envFrom:
+            - configMapRef:
+                name: stario-config
+            - secretRef:
+                name: stario-secrets
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "500m"
+              # nvidia.com/gpu: 1
+            limits:
+              memory: "4Gi"
+              cpu: "2000m"
+              # nvidia.com/gpu: 1
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8002
+            initialDelaySeconds: 30
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: video-gen
+  namespace: stario
+spec:
+  selector:
+    app: video-gen
+  ports:
+    - port: 8002
+      targetPort: 8002

@@ -1,0 +1,14 @@
+# Stario Platform - Grafana Dashboard Provisioning
+apiVersion: 1
+
+providers:
+  - name: 'Stario Dashboards'
+    orgId: 1
+    folder: 'Stario Platform'
+    folderUid: 'stario'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/json

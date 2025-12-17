@@ -1,0 +1,216 @@
+{
+  "common": {
+    "home": "Home",
+    "artists": "Artists",
+    "shop": "Shop",
+    "profile": "Profile",
+    "cart": "Cart",
+    "seeAll": "See all",
+    "createNow": "Create Now",
+    "loading": "Loading...",
+    "error": "Error",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit",
+    "search": "Search",
+    "noResults": "No results found",
+    "language": "Language",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "home": {
+    "title": "Create magical moments with your favorite artists",
+    "subtitle": "AI-powered personalized greetings, quizzes, and more",
+    "featuredArtists": "Featured Artists",
+    "specialOffer": "Special Birthday Offer!",
+    "offerDescription": "Get 20% off on your first Stario Moment"
+  },
+  "features": {
+    "starioMoment": {
+      "name": "Stario Moment",
+      "description": "Get a personalized video greeting from your favorite artist"
+    },
+    "faceQuiz": {
+      "name": "Face Quiz",
+      "description": "Find out which artist you look like most"
+    },
+    "posterMaker": {
+      "name": "Poster Maker",
+      "description": "Create AI-generated posters with artists"
+    },
+    "voiceQuiz": {
+      "name": "Voice Quiz",
+      "description": "Can you tell AI voice from the real one?"
+    }
+  },
+  "artists": {
+    "title": "Artists",
+    "subtitle": "Uzbek music stars",
+    "verified": "Verified",
+    "followers": "followers",
+    "videos": "Videos",
+    "about": "About",
+    "aboutArtist": "About Artist",
+    "popular": "Popular",
+    "searchPlaceholder": "Search artists...",
+    "found": "Found",
+    "artist": "artist",
+    "artists_few": "artists",
+    "artists_many": "artists",
+    "all": "All",
+    "men": "Men",
+    "women": "Women",
+    "byPopularity": "By popularity",
+    "byName": "By name",
+    "noResults": "No artists found",
+    "resetFilters": "Reset filters",
+    "wantVideo": "Want a video from a star?",
+    "orderPersonalized": "Order a personalized AI greeting",
+    "order": "Order",
+    "orderVideo": "Order Video",
+    "addToFavorites": "Add to Favorites",
+    "showMore": "Show more",
+    "profile": "Artist Profile",
+    "gender": "Gender",
+    "category": "Category",
+    "price": "Price",
+    "status": {
+      "active": "Active",
+      "pending": "Pending",
+      "suspended": "Suspended"
+    },
+    "categories": {
+      "pop": "Pop",
+      "traditional": "Traditional",
+      "rap": "Rap",
+      "rock": "Rock"
+    }
+  },
+  "createMoment": {
+    "title": "Create Your Moment",
+    "selectArtist": "Select an Artist",
+    "top10Artists": "Top 10 Uzbek Artists",
+    "viewAllArtists": "View All Artists",
+    "occasion": "What's the occasion?",
+    "recipientName": "Recipient's Name",
+    "enterName": "Enter name",
+    "message": "Your Message",
+    "messagePlaceholder": "Tell the artist what you'd like them to say...",
+    "createMessage": "Create Your Message",
+    "reviewOrder": "Review Your Order",
+    "video": "Video",
+    "to": "To",
+    "videoPrice": "Video Price",
+    "serviceFee": "Service Fee",
+    "payNow": "Pay Now",
+    "orderNow": "Order Now",
+    "price": "Price",
+    "steps": {
+      "chooseArtist": "Choose Artist",
+      "writeMessage": "Write Message",
+      "reviewPay": "Review & Pay"
+    },
+    "occasions": {
+      "birthday": "Birthday",
+      "congratulations": "Congratulations",
+      "thankYou": "Thank You",
+      "getWell": "Get Well Soon",
+      "justBecause": "Just Because",
+      "holiday": "Holiday"
+    }
+  },
+  "faceQuiz": {
+    "title": "Face Quiz",
+    "subtitle": "Upload your photo to find out which artist you look like!",
+    "uploadPhoto": "Upload Photo",
+    "takePhoto": "Take Photo",
+    "analyzing": "Analyzing your face...",
+    "result": "You look like",
+    "similarity": "similarity",
+    "tryAgain": "Try Again",
+    "share": "Share Result"
+  },
+  "voiceQuiz": {
+    "title": "Voice Quiz",
+    "subtitle": "Can you tell the difference between AI and real voice?",
+    "listen": "Listen",
+    "isReal": "Is this the real voice?",
+    "real": "Real",
+    "ai": "AI Generated",
+    "correct": "Correct!",
+    "wrong": "Wrong!",
+    "score": "Score",
+    "playAgain": "Play Again"
+  },
+  "posterMaker": {
+    "title": "AI Poster Maker",
+    "subtitle": "Create stunning posters with your favorite artists",
+    "selectStyle": "Select Style",
+    "enterPrompt": "Enter your idea",
+    "generate": "Generate Poster",
+    "generating": "Generating...",
+    "download": "Download",
+    "share": "Share"
+  },
+  "merch": {
+    "title": "Merch Shop",
+    "categories": "Categories",
+    "all": "All",
+    "clothing": "Clothing",
+    "accessories": "Accessories",
+    "posters": "Posters",
+    "addToCart": "Add to Cart",
+    "outOfStock": "Out of Stock",
+    "size": "Size",
+    "color": "Color"
+  },
+  "cart": {
+    "title": "Shopping Cart",
+    "empty": "Your cart is empty",
+    "continueShopping": "Continue Shopping",
+    "subtotal": "Subtotal",
+    "shipping": "Shipping",
+    "total": "Total",
+    "checkout": "Checkout",
+    "remove": "Remove",
+    "quantity": "Quantity"
+  },
+  "checkout": {
+    "title": "Checkout",
+    "shippingInfo": "Shipping Information",
+    "paymentMethod": "Payment Method",
+    "orderSummary": "Order Summary",
+    "placeOrder": "Place Order",
+    "fullName": "Full Name",
+    "phone": "Phone Number",
+    "address": "Address",
+    "city": "City",
+    "card": "Credit Card",
+    "cash": "Cash on Delivery"
+  },
+  "profile": {
+    "title": "Profile",
+    "myOrders": "My Orders",
+    "myContent": "My Content",
+    "settings": "Settings",
+    "logout": "Log Out",
+    "login": "Log In",
+    "register": "Register",
+    "editProfile": "Edit Profile"
+  },
+  "myContent": {
+    "title": "My Content",
+    "videos": "Videos",
+    "posters": "Posters",
+    "quizResults": "Quiz Results",
+    "download": "Download",
+    "share": "Share",
+    "empty": "You haven't created any content yet"
+  }
+}

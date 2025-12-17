@@ -1,0 +1,57 @@
+# Dependencies
+node_modules/
+venv/
+__pycache__/
+*.pyc
+
+# Build outputs
+dist/
+build/
+.next/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Cache
+.cache/
+.parcel-cache/
+.eslintcache
+
+# Coverage
+coverage/
+
+# Docker volumes
+postgres_data/
+redis_data/
+minio_data/
+
+# Temporary
+tmp/
+temp/
+*.tmp
+
+# Windows special files
+nul
+NUL
+con
+CON
+aux
+AUX
+prn
+PRN

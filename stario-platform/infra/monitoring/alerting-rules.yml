@@ -1,0 +1,238 @@
+# Prometheus Alerting Rules for Stario Platform
+groups:
+  - name: stario-api
+    interval: 30s
+    rules:
+      # High error rate
+      - alert: HighErrorRate
+        expr: |
+          sum(rate(http_requests_total{status=~"5.."}[5m])) /
+          sum(rate(http_requests_total[5m])) > 0.01
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value | humanizePercentage }} (threshold: 1%)"
+
+      # High latency
+      - alert: HighLatency
+        expr: |
+          histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, endpoint)) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High latency on {{ $labels.endpoint }}"
+          description: "P95 latency is {{ $value | humanizeDuration }}"
+
+      # API Gateway down
+      - alert: APIGatewayDown
+        expr: up{job="api-gateway"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "API Gateway is down"
+          description: "API Gateway has been down for more than 1 minute"
+
+  - name: stario-video-gen
+    interval: 30s
+    rules:
+      # Video generation too slow
+      - alert: VideoGenerationSlow
+        expr: |
+          histogram_quantile(0.95, sum(rate(video_generation_duration_seconds_bucket[5m])) by (le)) > 40
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Video generation exceeds 40s target"
+          description: "P95 video generation time is {{ $value | humanizeDuration }}"
+
+      # Video generation queue too long
+      - alert: VideoQueueBacklog
+        expr: stario_job_queue_length{queue="video_generation"} > 100
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Video generation queue backlog"
+          description: "{{ $value }} jobs waiting in queue"
+
+      # Video generation failures
+      - alert: VideoGenerationFailures
+        expr: |
+          sum(rate(video_generation_total{status="failed"}[5m])) /
+          sum(rate(video_generation_total[5m])) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High video generation failure rate"
+          description: "{{ $value | humanizePercentage }} of video generations failing"
+
+  - name: stario-face-quiz
+    interval: 30s
+    rules:
+      # Face similarity too slow
+      - alert: FaceSimilaritySlow
+        expr: |
+          histogram_quantile(0.95, sum(rate(face_similarity_duration_seconds_bucket[5m])) by (le)) > 0.2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Face similarity exceeds 200ms target"
+          description: "P95 face similarity time is {{ $value | humanizeDuration }}"
+
+  - name: stario-poster-gen
+    interval: 30s
+    rules:
+      # Poster generation too slow
+      - alert: PosterGenerationSlow
+        expr: |
+          histogram_quantile(0.95, sum(rate(poster_generation_duration_seconds_bucket[5m])) by (le)) > 5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Poster generation exceeds 5s target"
+          description: "P95 poster generation time is {{ $value | humanizeDuration }}"
+
+  - name: stario-infrastructure
+    interval: 30s
+    rules:
+      # Database connection pool exhausted
+      - alert: DatabaseConnectionPoolExhausted
+        expr: pg_stat_activity_count > pg_settings_max_connections * 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Database connection pool nearly exhausted"
+          description: "{{ $value }} of {{ query \"pg_settings_max_connections\" }} connections in use"
+
+      # Redis memory high
+      - alert: RedisMemoryHigh
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Redis memory usage high"
+          description: "Redis memory at {{ $value | humanizePercentage }}"
+
+      # Disk space low
+      - alert: DiskSpaceLow
+        expr: |
+          (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) < 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low disk space"
+          description: "Only {{ $value | humanizePercentage }} disk space remaining"
+
+      # High CPU usage
+      - alert: HighCPUUsage
+        expr: |
+          100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage on {{ $labels.instance }}"
+          description: "CPU usage is {{ $value | humanize }}%"
+
+      # High memory usage
+      - alert: HighMemoryUsage
+        expr: |
+          (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is {{ $value | humanize }}%"
+
+  - name: stario-gpu
+    interval: 30s
+    rules:
+      # GPU memory high
+      - alert: GPUMemoryHigh
+        expr: nvidia_gpu_memory_used_bytes / nvidia_gpu_memory_total_bytes > 0.9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "GPU memory usage high"
+          description: "GPU {{ $labels.gpu }} memory at {{ $value | humanizePercentage }}"
+
+      # GPU temperature high
+      - alert: GPUTemperatureHigh
+        expr: nvidia_gpu_temperature_celsius > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "GPU temperature high"
+          description: "GPU {{ $labels.gpu }} temperature at {{ $value }}°C"
+
+  - name: stario-business
+    interval: 1m
+    rules:
+      # Low video generation rate
+      - alert: LowVideoGenerationRate
+        expr: sum(increase(video_generation_total[1h])) < 10
+        for: 30m
+        labels:
+          severity: info
+        annotations:
+          summary: "Low video generation activity"
+          description: "Only {{ $value }} videos generated in the last hour"
+
+      # Payment failures
+      - alert: PaymentFailures
+        expr: |
+          sum(rate(payment_total{status="failed"}[5m])) /
+          sum(rate(payment_total[5m])) > 0.1
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High payment failure rate"
+          description: "{{ $value | humanizePercentage }} of payments failing"
+
+      # Moderation queue backlog
+      - alert: ModerationQueueBacklog
+        expr: stario_moderation_queue_length > 50
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Content moderation queue backlog"
+          description: "{{ $value }} items waiting for moderation review"
+
+  - name: stario-compliance
+    interval: 1m
+    rules:
+      # Ephemeral uploads not being deleted
+      - alert: EphemeralUploadsStale
+        expr: stario_ephemeral_uploads_pending > 100
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Ephemeral uploads not being deleted"
+          description: "{{ $value }} uploads pending deletion (PII compliance risk)"
+
+      # Audit log write failures
+      - alert: AuditLogFailures
+        expr: rate(audit_log_write_failures_total[5m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Audit log write failures"
+          description: "Failing to write audit logs (compliance requirement)"

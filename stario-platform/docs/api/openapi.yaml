@@ -1,0 +1,549 @@
+openapi: 3.1.0
+info:
+  title: Stario API
+  description: |
+    Stario / TabrikStar - AI Emotion Platform API
+
+    Create personalized AI video greetings, face quizzes, posters, and more
+    with your favorite artists.
+
+    ## Authentication
+    Most endpoints require Bearer token authentication.
+    Get your token via `/auth/login` or `/auth/telegram`.
+
+    ## Rate Limiting
+    - 60 requests per minute per user
+    - 10,000 requests per day per user
+
+    ## Compliance (Uzbekistan 2025-2030)
+    - Data residency: All user data stored within Uzbekistan
+    - PII minimization: Face Quiz photos deleted within 3 seconds
+    - Audit logs retained for 90 days
+
+  version: 1.0.0
+  contact:
+    name: Stario Support
+    email: support@stario.uz
+
+servers:
+  - url: https://api.stario.uz
+    description: Production
+  - url: https://api-staging.stario.uz
+    description: Staging
+  - url: http://localhost:8000
+    description: Local development
+
+tags:
+  - name: Authentication
+    description: User authentication and authorization
+  - name: Artists
+    description: Artist management
+  - name: Videos
+    description: Video generation (Stario Moment)
+  - name: Face Quiz
+    description: Face similarity comparison
+  - name: Posters
+    description: AI poster generation
+  - name: Voice
+    description: Voice generation and quiz
+  - name: Merchandise
+    description: MerchVerse products
+  - name: Orders
+    description: Order management
+  - name: Payments
+    description: Payment processing
+
+paths:
+  /auth/register:
+    post:
+      tags: [Authentication]
+      summary: Register new user
+      operationId: register
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '409':
+          description: Email already registered
+
+  /auth/login:
+    post:
+      tags: [Authentication]
+      summary: Login with email/password
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          description: Invalid credentials
+
+  /auth/telegram:
+    post:
+      tags: [Authentication]
+      summary: Login via Telegram Mini App
+      operationId: telegramAuth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TelegramAuthRequest'
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+
+  /artists:
+    get:
+      tags: [Artists]
+      summary: List all artists
+      operationId: listArtists
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: country
+          in: query
+          schema:
+            type: string
+            default: UZ
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: List of artists
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Artist'
+
+  /artists/{artistId}:
+    get:
+      tags: [Artists]
+      summary: Get artist details
+      operationId: getArtist
+      parameters:
+        - name: artistId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Artist details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Artist'
+        '404':
+          description: Artist not found
+
+  /videos/generate:
+    post:
+      tags: [Videos]
+      summary: Start video generation
+      description: |
+        Generate a personalized "Stario Moment" video greeting.
+        Target processing time: ≤40 seconds.
+      operationId: generateVideo
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VideoGenerationRequest'
+      responses:
+        '200':
+          description: Generation job started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VideoGenerationResponse'
+
+  /videos/jobs/{jobId}:
+    get:
+      tags: [Videos]
+      summary: Get video job status
+      operationId: getVideoJobStatus
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Job status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VideoJobStatus'
+
+  /face-quiz/start:
+    post:
+      tags: [Face Quiz]
+      summary: Start face quiz
+      description: |
+        Begin face similarity comparison with an artist.
+        Returns presigned URL for direct photo upload.
+        Photos are deleted within 3 seconds per PII compliance.
+      operationId: startFaceQuiz
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FaceQuizRequest'
+      responses:
+        '200':
+          description: Quiz started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FaceQuizResponse'
+
+  /face-quiz/{quizId}/analyze:
+    post:
+      tags: [Face Quiz]
+      summary: Analyze face similarity
+      description: |
+        Process uploaded photo and return similarity score.
+        Target processing time: ≤200ms.
+      operationId: analyzeFace
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: quizId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Analysis result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FaceSimilarityResult'
+
+  /posters/generate:
+    post:
+      tags: [Posters]
+      summary: Generate AI poster
+      description: |
+        Create AI-generated poster with artist.
+        Target processing time: ≤5 seconds.
+      operationId: generatePoster
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PosterGenerationRequest'
+      responses:
+        '200':
+          description: Generation job started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PosterGenerationResponse'
+
+  /payments/init:
+    post:
+      tags: [Payments]
+      summary: Initialize payment
+      description: |
+        Initialize payment for an order.
+        Supports Stripe, Payme, Click, and VAS billing.
+      operationId: initPayment
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentInitRequest'
+      responses:
+        '200':
+          description: Payment initialized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentInitResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    RegisterRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        full_name:
+          type: string
+        phone:
+          type: string
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    TelegramAuthRequest:
+      type: object
+      required: [init_data]
+      properties:
+        init_data:
+          type: string
+          description: Telegram Mini App init data
+
+    TokenResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+        token_type:
+          type: string
+          default: bearer
+        expires_in:
+          type: integer
+
+    Artist:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        stage_name:
+          type: string
+        bio:
+          type: string
+        category:
+          type: string
+        country:
+          type: string
+        avatar_url:
+          type: string
+        verification_status:
+          type: string
+          enum: [pending, approved, rejected]
+        is_active:
+          type: boolean
+        total_videos:
+          type: integer
+        rating:
+          type: number
+
+    VideoGenerationRequest:
+      type: object
+      required: [artist_id, custom_message, recipient_name]
+      properties:
+        artist_id:
+          type: string
+        prompt_template_id:
+          type: string
+        custom_message:
+          type: string
+          maxLength: 500
+        recipient_name:
+          type: string
+        occasion:
+          type: string
+          default: greeting
+        language:
+          type: string
+          default: uz
+        duration_seconds:
+          type: integer
+          enum: [15, 30, 60]
+          default: 15
+
+    VideoGenerationResponse:
+      type: object
+      properties:
+        job_id:
+          type: string
+        status:
+          type: string
+        estimated_duration_seconds:
+          type: integer
+        queue_position:
+          type: integer
+
+    VideoJobStatus:
+      type: object
+      properties:
+        job_id:
+          type: string
+        status:
+          type: string
+          enum: [pending, queued, processing, completed, failed]
+        progress_percent:
+          type: integer
+        video_url:
+          type: string
+        thumbnail_url:
+          type: string
+        error_message:
+          type: string
+
+    FaceQuizRequest:
+      type: object
+      required: [artist_id]
+      properties:
+        artist_id:
+          type: string
+        save_photo:
+          type: boolean
+          default: false
+          description: If false, photo deleted after 3s per PII rules
+
+    FaceQuizResponse:
+      type: object
+      properties:
+        quiz_id:
+          type: string
+        upload_url:
+          type: string
+          description: Presigned URL for direct upload
+        upload_key:
+          type: string
+        expires_in_seconds:
+          type: integer
+
+    FaceSimilarityResult:
+      type: object
+      properties:
+        quiz_id:
+          type: string
+        artist_id:
+          type: string
+        similarity_score:
+          type: number
+          minimum: 0
+          maximum: 100
+        matching_features:
+          type: array
+          items:
+            type: string
+        rank_percentile:
+          type: number
+        badge_earned:
+          type: string
+        share_image_url:
+          type: string
+
+    PosterGenerationRequest:
+      type: object
+      required: [artist_id, text]
+      properties:
+        template_id:
+          type: string
+        artist_id:
+          type: string
+        style:
+          type: string
+          default: modern
+        text:
+          type: string
+        secondary_text:
+          type: string
+        aspect_ratio:
+          type: string
+          default: "1:1"
+
+    PosterGenerationResponse:
+      type: object
+      properties:
+        job_id:
+          type: string
+        status:
+          type: string
+        estimated_duration_seconds:
+          type: integer
+
+    PaymentInitRequest:
+      type: object
+      required: [order_id, provider]
+      properties:
+        order_id:
+          type: string
+        provider:
+          type: string
+          enum: [stripe, payme, click, vas]
+        return_url:
+          type: string
+
+    PaymentInitResponse:
+      type: object
+      properties:
+        payment_id:
+          type: string
+        provider:
+          type: string
+        checkout_url:
+          type: string
+        client_secret:
+          type: string
+        status:
+          type: string

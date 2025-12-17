@@ -1,0 +1,118 @@
+# Prometheus Configuration for Stario Platform
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'stario-platform'
+
+# Alerting configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+
+# Rule files
+rule_files:
+  - /etc/prometheus/rules/*.yml
+
+# Scrape configurations
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # API Gateway
+  - job_name: 'api-gateway'
+    static_configs:
+      - targets: ['api-gateway:8000']
+    metrics_path: /metrics
+    scrape_interval: 10s
+
+  # Video Generation Service
+  - job_name: 'video-gen'
+    static_configs:
+      - targets: ['video-gen:8002']
+    metrics_path: /metrics
+    scrape_interval: 30s  # Less frequent for GPU-heavy service
+
+  # Voice Generation Service
+  - job_name: 'voice-gen'
+    static_configs:
+      - targets: ['voice-gen:8003']
+    metrics_path: /metrics
+
+  # Face Similarity Service
+  - job_name: 'face-similarity'
+    static_configs:
+      - targets: ['face-similarity:8004']
+    metrics_path: /metrics
+
+  # Poster Generation Service
+  - job_name: 'poster-gen'
+    static_configs:
+      - targets: ['poster-gen:8005']
+    metrics_path: /metrics
+
+  # Merch Engine Service
+  - job_name: 'merch-engine'
+    static_configs:
+      - targets: ['merch-engine:8006']
+    metrics_path: /metrics
+
+  # RegTech Filter Service
+  - job_name: 'regtech-filter'
+    static_configs:
+      - targets: ['regtech-filter:8007']
+    metrics_path: /metrics
+
+  # PostgreSQL Exporter
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+
+  # Redis Exporter
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+
+  # Node Exporter (host metrics)
+  - job_name: 'node'
+    static_configs:
+      - targets: ['node-exporter:9100']
+
+  # NVIDIA GPU Exporter (for AI services)
+  - job_name: 'nvidia-gpu'
+    static_configs:
+      - targets: ['nvidia-gpu-exporter:9400']
+    scrape_interval: 30s
+
+  # Kubernetes Service Discovery (for K8s deployment)
+  - job_name: 'kubernetes-pods'
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+            - stario
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+        action: replace
+        target_label: __metrics_path__
+        regex: (.+)
+      - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+        action: replace
+        regex: ([^:]+)(?::\d+)?;(\d+)
+        replacement: $1:$2
+        target_label: __address__
+      - action: labelmap
+        regex: __meta_kubernetes_pod_label_(.+)
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: kubernetes_namespace
+      - source_labels: [__meta_kubernetes_pod_name]
+        action: replace
+        target_label: kubernetes_pod_name

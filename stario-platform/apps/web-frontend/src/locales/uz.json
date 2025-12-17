@@ -1,0 +1,216 @@
+{
+  "common": {
+    "home": "Bosh sahifa",
+    "artists": "Artistlar",
+    "shop": "Do'kon",
+    "profile": "Profil",
+    "cart": "Savat",
+    "seeAll": "Hammasi",
+    "createNow": "Yaratish",
+    "loading": "Yuklanmoqda...",
+    "error": "Xatolik",
+    "retry": "Qayta urinish",
+    "cancel": "Bekor qilish",
+    "confirm": "Tasdiqlash",
+    "save": "Saqlash",
+    "delete": "O'chirish",
+    "edit": "Tahrirlash",
+    "back": "Orqaga",
+    "next": "Keyingi",
+    "submit": "Yuborish",
+    "search": "Qidirish",
+    "noResults": "Hech narsa topilmadi",
+    "language": "Til",
+    "yes": "Ha",
+    "no": "Yo'q"
+  },
+  "home": {
+    "title": "Sevimli artistlaringiz bilan sehrli lahzalar yarating",
+    "subtitle": "Sun'iy intellekt yordamida shaxsiy tabriklar, viktorinalar va boshqalar",
+    "featuredArtists": "Mashhur artistlar",
+    "specialOffer": "Maxsus taklif!",
+    "offerDescription": "Birinchi Stario Moment uchun 20% chegirma"
+  },
+  "features": {
+    "starioMoment": {
+      "name": "Stario Moment",
+      "description": "Sevimli artistingizdan shaxsiy video tabrik oling"
+    },
+    "faceQuiz": {
+      "name": "Face Quiz",
+      "description": "Qaysi artistga ko'proq o'xshashingizni bilib oling"
+    },
+    "posterMaker": {
+      "name": "Poster Maker",
+      "description": "Sun'iy intellekt yordamida artistlar bilan posterlar yarating"
+    },
+    "voiceQuiz": {
+      "name": "Voice Quiz",
+      "description": "Sun'iy intellekt ovozini haqiqiysidan ajrata olasizmi?"
+    }
+  },
+  "artists": {
+    "title": "Artistlar",
+    "subtitle": "O'zbek estrada yulduzlari",
+    "verified": "Tasdiqlangan",
+    "followers": "obunachi",
+    "videos": "Videolar",
+    "about": "Artist haqida",
+    "aboutArtist": "Artist haqida",
+    "popular": "Mashhur",
+    "searchPlaceholder": "Artistlarni qidirish...",
+    "found": "Topildi",
+    "artist": "artist",
+    "artists_few": "artist",
+    "artists_many": "artist",
+    "all": "Hammasi",
+    "men": "Erkaklar",
+    "women": "Ayollar",
+    "byPopularity": "Mashhurlik bo'yicha",
+    "byName": "Ism bo'yicha",
+    "noResults": "Artistlar topilmadi",
+    "resetFilters": "Filtrlarni tozalash",
+    "wantVideo": "Yulduzdan video olishni xohlaysizmi?",
+    "orderPersonalized": "Shaxsiy AI tabrik buyurtma qiling",
+    "order": "Buyurtma",
+    "orderVideo": "Video buyurtma qilish",
+    "addToFavorites": "Sevimliarga qo'shish",
+    "showMore": "Ko'proq ko'rsatish",
+    "profile": "Artist profili",
+    "gender": "Jinsi",
+    "category": "Kategoriya",
+    "price": "Narx",
+    "status": {
+      "active": "Faol",
+      "pending": "Kutilmoqda",
+      "suspended": "To'xtatilgan"
+    },
+    "categories": {
+      "pop": "Pop",
+      "traditional": "An'anaviy",
+      "rap": "Rep",
+      "rock": "Rok"
+    }
+  },
+  "createMoment": {
+    "title": "O'z Momentingizni yarating",
+    "selectArtist": "Artist tanlang",
+    "top10Artists": "O'zbekistonning Top-10 artistlari",
+    "viewAllArtists": "Barcha artistlar",
+    "occasion": "Tabrik uchun sabab",
+    "recipientName": "Qabul qiluvchi ismi",
+    "enterName": "Ismni kiriting",
+    "message": "Xabaringiz",
+    "messagePlaceholder": "Artist nima deyishini yozing...",
+    "createMessage": "Xabar yarating",
+    "reviewOrder": "Buyurtmani tekshiring",
+    "video": "Video",
+    "to": "Kimga",
+    "videoPrice": "Video narxi",
+    "serviceFee": "Xizmat haqi",
+    "payNow": "To'lash",
+    "orderNow": "Buyurtma berish",
+    "price": "Narx",
+    "steps": {
+      "chooseArtist": "Artist tanlash",
+      "writeMessage": "Xabar yozish",
+      "reviewPay": "To'lov"
+    },
+    "occasions": {
+      "birthday": "Tug'ilgan kun",
+      "congratulations": "Tabrik",
+      "thankYou": "Rahmat",
+      "getWell": "Tez tuzaling",
+      "justBecause": "Shunchaki",
+      "holiday": "Bayram"
+    }
+  },
+  "faceQuiz": {
+    "title": "Face Quiz",
+    "subtitle": "Rasmingizni yuklang va qaysi artistga o'xshashingizni bilib oling!",
+    "uploadPhoto": "Rasm yuklash",
+    "takePhoto": "Rasm olish",
+    "analyzing": "Yuzingiz tahlil qilinmoqda...",
+    "result": "Siz o'xshaysiz",
+    "similarity": "o'xshashlik",
+    "tryAgain": "Qayta urinish",
+    "share": "Ulashish"
+  },
+  "voiceQuiz": {
+    "title": "Voice Quiz",
+    "subtitle": "Sun'iy intellekt ovozini haqiqiysidan ajrata olasizmi?",
+    "listen": "Tinglash",
+    "isReal": "Bu haqiqiy ovozmi?",
+    "real": "Haqiqiy",
+    "ai": "Sun'iy intellekt",
+    "correct": "To'g'ri!",
+    "wrong": "Noto'g'ri!",
+    "score": "Ball",
+    "playAgain": "Qayta o'ynash"
+  },
+  "posterMaker": {
+    "title": "SI Poster Maker",
+    "subtitle": "Sevimli artistlaringiz bilan ajoyib posterlar yarating",
+    "selectStyle": "Uslub tanlang",
+    "enterPrompt": "G'oyangizni kiriting",
+    "generate": "Poster yaratish",
+    "generating": "Yaratilmoqda...",
+    "download": "Yuklab olish",
+    "share": "Ulashish"
+  },
+  "merch": {
+    "title": "Merch do'koni",
+    "categories": "Kategoriyalar",
+    "all": "Hammasi",
+    "clothing": "Kiyim",
+    "accessories": "Aksessuarlar",
+    "posters": "Posterlar",
+    "addToCart": "Savatga qo'shish",
+    "outOfStock": "Mavjud emas",
+    "size": "O'lcham",
+    "color": "Rang"
+  },
+  "cart": {
+    "title": "Savat",
+    "empty": "Savat bo'sh",
+    "continueShopping": "Xaridni davom ettirish",
+    "subtotal": "Jami",
+    "shipping": "Yetkazib berish",
+    "total": "Umumiy",
+    "checkout": "Buyurtma berish",
+    "remove": "O'chirish",
+    "quantity": "Miqdor"
+  },
+  "checkout": {
+    "title": "Buyurtmani rasmiylashtirish",
+    "shippingInfo": "Yetkazib berish ma'lumotlari",
+    "paymentMethod": "To'lov usuli",
+    "orderSummary": "Buyurtma tafsilotlari",
+    "placeOrder": "Buyurtma berish",
+    "fullName": "To'liq ism",
+    "phone": "Telefon raqami",
+    "address": "Manzil",
+    "city": "Shahar",
+    "card": "Bank kartasi",
+    "cash": "Naqd pul"
+  },
+  "profile": {
+    "title": "Profil",
+    "myOrders": "Buyurtmalarim",
+    "myContent": "Kontentim",
+    "settings": "Sozlamalar",
+    "logout": "Chiqish",
+    "login": "Kirish",
+    "register": "Ro'yxatdan o'tish",
+    "editProfile": "Profilni tahrirlash"
+  },
+  "myContent": {
+    "title": "Kontentim",
+    "videos": "Videolar",
+    "posters": "Posterlar",
+    "quizResults": "Viktorina natijalari",
+    "download": "Yuklab olish",
+    "share": "Ulashish",
+    "empty": "Siz hali kontent yaratmagansiz"
+  }
+}
