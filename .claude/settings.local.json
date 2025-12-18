@@ -103,7 +103,12 @@
       "Bash(docker rmi:*)",
       "Bash(docker builder prune:*)",
       "Bash(docker image prune:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(venv/Scripts/python.exe -m uvicorn:*)",
+      "Bash(taskkill /F /FI \"WINDOWTITLE eq Face Quiz*\")",
+      "Bash(venv/Scripts/pip.exe install:*)",
+      "Bash(tasklist:*)",
+      "Bash(wmic process where \"CommandLine like ''%uvicorn%''\" get ProcessId,Name,CommandLine)"
     ],
     "deny": [],
     "ask": []

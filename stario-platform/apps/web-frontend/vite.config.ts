@@ -12,7 +12,7 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/api/, '')
       },
       '/face-quiz-api': {
-        target: 'http://localhost:8001',
+        target: 'http://localhost:8003',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/face-quiz-api/, '')
       }
