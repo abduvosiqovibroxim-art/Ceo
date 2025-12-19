@@ -88,6 +88,7 @@
     "categories": {
       "pop": "Pop",
       "traditional": "Traditional",
+      "actor": "Actors",
       "rap": "Rap",
       "rock": "Rock"
     }

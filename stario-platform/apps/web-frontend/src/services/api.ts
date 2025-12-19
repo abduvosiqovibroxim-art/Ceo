@@ -17,7 +17,7 @@ const MOCK_ARTISTS: Artist[] = [
 ];
 
 // Set to true to use mock data immediately (when backend is not running)
-let USE_MOCK_DATA = true;
+let USE_MOCK_DATA = false;
 
 async function fetchApi<T>(
   endpoint: string,
@@ -61,9 +61,8 @@ async function fetchApi<T>(
 
     return response.json();
   } catch (error) {
-    console.warn('API unavailable, using mock data:', error);
-    USE_MOCK_DATA = true;
-    return getMockResponse<T>(endpoint);
+    console.error('API error:', error);
+    throw error;
   }
 }
 

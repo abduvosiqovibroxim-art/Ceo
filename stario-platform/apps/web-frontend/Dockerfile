@@ -24,6 +24,9 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 # Copy built assets from builder
 COPY --from=builder /app/dist /usr/share/nginx/html
 
+# Copy public folder (celebrities photos)
+COPY --from=builder /app/public/celebrities /usr/share/nginx/html/celebrities
+
 # Expose port
 EXPOSE 4001
 

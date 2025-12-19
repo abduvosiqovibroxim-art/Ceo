@@ -108,35 +108,10 @@ export const actorsCatalog: Actor[] = [
     ]
   },
   {
-    id: 'shohruhxon',
-    name: 'Шохруххон',
-    name_uz: 'Shohruhxon',
-    image: '/celebrities/shohruhxon.jpg',
-    category: 'uzbek',
-    scenes: [
-      {
-        id: 'shohruhxon-action',
-        name: 'Боевик',
-        template: '/posters/templates/action-bg.jpg',
-        actorPosition: { x: 5, y: 10, width: 45, height: 75, zIndex: 2 },
-        userPosition: { x: 50, y: 15, width: 45, height: 70, zIndex: 1 },
-        genre: 'action'
-      },
-      {
-        id: 'shohruhxon-thriller',
-        name: 'Триллер',
-        template: '/posters/templates/thriller-bg.jpg',
-        actorPosition: { x: 55, y: 15, width: 40, height: 70, zIndex: 2 },
-        userPosition: { x: 5, y: 20, width: 40, height: 65, zIndex: 1 },
-        genre: 'thriller'
-      }
-    ]
-  },
-  {
     id: 'yulduz',
     name: 'Юлдуз Усмонова',
-    name_uz: 'Yulduz Usmonova',
-    image: '/celebrities/yulduz_usmonova.jpg',
+    name_uz: 'Yulduz Usmanova',
+    image: '/celebrities/yulduz_usmanova.jpg',
     category: 'uzbek',
     scenes: [
       {
@@ -151,9 +126,9 @@ export const actorsCatalog: Actor[] = [
   },
   {
     id: 'ozoda',
-    name: 'Озода Нурсаидова',
-    name_uz: 'Ozoda Nursaidova',
-    image: '/celebrities/ozoda_nursaidova.jpg',
+    name: 'Озода',
+    name_uz: 'Ozoda',
+    image: '/celebrities/ozoda.jpg',
     category: 'uzbek',
     scenes: [
       {
@@ -168,9 +143,9 @@ export const actorsCatalog: Actor[] = [
   },
   {
     id: 'sevara',
-    name: 'Севара Назархан',
-    name_uz: 'Sevara Nazarkhan',
-    image: '/celebrities/sevara_nazarkhan.jpg',
+    name: 'Севара',
+    name_uz: 'Sevara',
+    image: '/celebrities/sevara.jpg',
     category: 'uzbek',
     scenes: [
       {
@@ -202,9 +177,9 @@ export const actorsCatalog: Actor[] = [
   },
   {
     id: 'lola',
-    name: 'Лола Юлдашева',
-    name_uz: 'Lola Yuldasheva',
-    image: '/celebrities/lola_yuldasheva.jpg',
+    name: 'Лола',
+    name_uz: 'Lola',
+    image: '/celebrities/lola.jpg',
     category: 'uzbek',
     scenes: [
       {
@@ -214,6 +189,91 @@ export const actorsCatalog: Actor[] = [
         actorPosition: { x: 10, y: 15, width: 40, height: 70, zIndex: 2 },
         userPosition: { x: 50, y: 20, width: 40, height: 65, zIndex: 1 },
         genre: 'glamour'
+      }
+    ]
+  },
+  {
+    id: 'munisa',
+    name: 'Муниса Ризаева',
+    name_uz: 'Munisa Rizayeva',
+    image: '/celebrities/munisa_rizayeva.jpg',
+    category: 'uzbek',
+    scenes: [
+      {
+        id: 'munisa-drama',
+        name: 'Драма',
+        template: '/posters/templates/drama-bg.jpg',
+        actorPosition: { x: 10, y: 15, width: 40, height: 70, zIndex: 2 },
+        userPosition: { x: 50, y: 20, width: 40, height: 65, zIndex: 1 },
+        genre: 'drama'
+      }
+    ]
+  },
+  {
+    id: 'ziyoda',
+    name: 'Зиёда',
+    name_uz: 'Ziyoda',
+    image: '/celebrities/ziyoda.jpg',
+    category: 'uzbek',
+    scenes: [
+      {
+        id: 'ziyoda-romance',
+        name: 'Романтика',
+        template: '/posters/templates/romance-bg.jpg',
+        actorPosition: { x: 15, y: 20, width: 35, height: 60, zIndex: 2 },
+        userPosition: { x: 50, y: 25, width: 35, height: 55, zIndex: 1 },
+        genre: 'romance'
+      }
+    ]
+  },
+  {
+    id: 'tohir',
+    name: 'Тохир Содиков',
+    name_uz: 'Tohir Sodiqov',
+    image: '/celebrities/tohir_sodiqov.jpg',
+    category: 'uzbek',
+    scenes: [
+      {
+        id: 'tohir-action',
+        name: 'Боевик',
+        template: '/posters/templates/action-bg.jpg',
+        actorPosition: { x: 5, y: 10, width: 45, height: 75, zIndex: 2 },
+        userPosition: { x: 50, y: 15, width: 45, height: 70, zIndex: 1 },
+        genre: 'action'
+      }
+    ]
+  },
+  {
+    id: 'jasur',
+    name: 'Жасур Умиров',
+    name_uz: 'Jasur Umirov',
+    image: '/celebrities/jasur_umirov.jpg',
+    category: 'uzbek',
+    scenes: [
+      {
+        id: 'jasur-thriller',
+        name: 'Триллер',
+        template: '/posters/templates/thriller-bg.jpg',
+        actorPosition: { x: 55, y: 15, width: 40, height: 70, zIndex: 2 },
+        userPosition: { x: 5, y: 20, width: 40, height: 65, zIndex: 1 },
+        genre: 'thriller'
+      }
+    ]
+  },
+  {
+    id: 'farukh',
+    name: 'Фарух Закиров',
+    name_uz: 'Farukh Zakirov',
+    image: '/celebrities/farukh_zakirov.jpg',
+    category: 'uzbek',
+    scenes: [
+      {
+        id: 'farukh-drama',
+        name: 'Драма',
+        template: '/posters/templates/drama-bg.jpg',
+        actorPosition: { x: 10, y: 15, width: 40, height: 70, zIndex: 2 },
+        userPosition: { x: 50, y: 20, width: 40, height: 65, zIndex: 1 },
+        genre: 'drama'
       }
     ]
   }

@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { artistsApi, Artist as ApiArtist } from '../services/api';
 
-type Category = 'all' | 'pop' | 'traditional' | 'rap' | 'rock';
+type Category = 'all' | 'pop' | 'traditional' | 'rap' | 'rock' | 'actor';
 type Gender = 'all' | 'male' | 'female';
 
 interface Artist {
@@ -31,6 +31,7 @@ const categories: { id: Category; nameKey: string }[] = [
   { id: 'all', nameKey: 'merch.all' },
   { id: 'pop', nameKey: 'artists.categories.pop' },
   { id: 'traditional', nameKey: 'artists.categories.traditional' },
+  { id: 'actor', nameKey: 'artists.categories.actor' },
   { id: 'rap', nameKey: 'artists.categories.rap' },
   { id: 'rock', nameKey: 'artists.categories.rock' },
 ];
@@ -282,6 +283,7 @@ export default function ArtistsPage() {
                     <span className={`text-xs px-2 py-0.5 rounded-full ${
                       artist.category === 'pop' ? 'bg-purple-100 text-purple-700' :
                       artist.category === 'traditional' ? 'bg-amber-100 text-amber-700' :
+                      artist.category === 'actor' ? 'bg-blue-100 text-blue-700' :
                       artist.category === 'rap' ? 'bg-gray-800 text-white' :
                       'bg-red-100 text-red-700'
                     }`}>

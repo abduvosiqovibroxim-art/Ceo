@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Webcam from 'react-webcam';
 import * as faceapi from 'face-api.js';
+import { yoloService } from '../services/yoloService';
 
 interface Celebrity {
   id: string;
@@ -15,15 +16,19 @@ interface Celebrity {
 
 type AppState = 'loading_models' | 'choose' | 'camera' | 'loading' | 'results';
 
-// Celebrities database with real photos
+// Celebrities database with real photos from face-quiz
 const celebritiesData: Omit<Celebrity, 'descriptor'>[] = [
-  { id: '1', name: 'Лола Юлдашева', name_uz: 'Lola Yuldasheva', percentage: 0, image: '/celebrities/lola_yuldasheva.jpg' },
-  { id: '2', name: 'Шахзода', name_uz: 'Shahzoda', percentage: 0, image: '/celebrities/shahzoda.jpg' },
-  { id: '3', name: 'Юлдуз Усмонова', name_uz: 'Yulduz Usmonova', percentage: 0, image: '/celebrities/yulduz_usmonova.jpg' },
-  { id: '4', name: 'Озода Нурсаидова', name_uz: 'Ozoda Nursaidova', percentage: 0, image: '/celebrities/ozoda_nursaidova.jpg' },
-  { id: '5', name: 'Райхон', name_uz: 'Rayhon', percentage: 0, image: '/celebrities/rayhon.jpg' },
-  { id: '6', name: 'Шохруххон', name_uz: 'Shohruhxon', percentage: 0, image: '/celebrities/shohruhxon.jpg' },
-  { id: '7', name: 'Севара Назархан', name_uz: 'Sevara Nazarkhan', percentage: 0, image: '/celebrities/sevara_nazarkhan.jpg' },
+  { id: '1', name: 'Шахзода', name_uz: 'Shahzoda', percentage: 0, image: '/celebrities/shahzoda_v2.jpg' },
+  { id: '2', name: 'Зиёда', name_uz: 'Ziyoda', percentage: 0, image: '/celebrities/ziyoda_v2.jpg' },
+  { id: '3', name: 'Юлдуз Усмонова', name_uz: 'Yulduz Usmanova', percentage: 0, image: '/celebrities/yulduz_usmanova.jpg' },
+  { id: '4', name: 'Озода', name_uz: 'Ozoda', percentage: 0, image: '/celebrities/ozoda.jpg' },
+  { id: '5', name: 'Севара', name_uz: 'Sevara', percentage: 0, image: '/celebrities/sevara.jpg' },
+  { id: '6', name: 'Райхон', name_uz: 'Rayhon', percentage: 0, image: '/celebrities/rayhon.jpg' },
+  { id: '7', name: 'Лола', name_uz: 'Lola', percentage: 0, image: '/celebrities/lola.jpg' },
+  { id: '8', name: 'Муниса Ризаева', name_uz: 'Munisa Rizayeva', percentage: 0, image: '/celebrities/munisa_rizayeva.jpg' },
+  { id: '9', name: 'Тохир Содиков', name_uz: 'Tohir Sodiqov', percentage: 0, image: '/celebrities/tohir_sodiqov.jpg' },
+  { id: '10', name: 'Жасур Умиров', name_uz: 'Jasur Umirov', percentage: 0, image: '/celebrities/jasur_umirov.jpg' },
+  { id: '11', name: 'Фарух Закиров', name_uz: 'Farukh Zakirov', percentage: 0, image: '/celebrities/farukh_zakirov.jpg' },
 ];
 
 const translations = {
@@ -92,6 +97,8 @@ export default function FaceQuizPage() {
   const [celebrities, setCelebrities] = useState<Celebrity[]>([]);
   const [modelsLoaded, setModelsLoaded] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
+  const [yoloReady, setYoloReady] = useState(false);
+  const [yoloDevice, setYoloDevice] = useState<string>('');
   const webcamRef = useRef<Webcam>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -99,6 +106,17 @@ export default function FaceQuizPage() {
   useEffect(() => {
     const loadModelsAndDescriptors = async () => {
       try {
+        setLoadingProgress(5);
+
+        // Check YOLO API availability
+        try {
+          const health = await yoloService.healthCheck();
+          setYoloReady(health.model_loaded);
+          setYoloDevice(health.device);
+          console.log('YOLO API ready:', health);
+        } catch (err) {
+          console.warn('YOLO API not available, using browser-only detection');
+        }
         setLoadingProgress(10);
 
         // Load face-api.js models
@@ -156,11 +174,29 @@ export default function FaceQuizPage() {
     setError(null);
 
     try {
+      // First, use YOLO API for person detection if available
+      if (yoloReady) {
+        try {
+          console.log('Using YOLO API for person detection...');
+          const yoloResult = await yoloService.detect(imageBlob);
+          console.log('YOLO detection result:', yoloResult);
+
+          if (!yoloService.hasPersonDetected(yoloResult)) {
+            setError(t.noFace);
+            setState('choose');
+            setPreviewImage(null);
+            return;
+          }
+        } catch (yoloErr) {
+          console.warn('YOLO detection failed, falling back to face-api:', yoloErr);
+        }
+      }
+
       // Create image element from blob
       const imageUrl = URL.createObjectURL(imageBlob);
       const img = await faceapi.fetchImage(imageUrl);
 
-      // Detect face and get descriptor
+      // Detect face and get descriptor using face-api.js
       const detection = await faceapi
         .detectSingleFace(img)
         .withFaceLandmarks()
@@ -289,11 +325,21 @@ export default function FaceQuizPage() {
             </p>
 
             {modelsLoaded && (
-              <div className="text-green-400 text-sm mb-2 flex items-center gap-2">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                AI Face Recognition Ready
+              <div className="flex flex-col gap-1 mb-2">
+                <div className="text-green-400 text-sm flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  AI Face Recognition Ready
+                </div>
+                {yoloReady && (
+                  <div className="text-cyan-400 text-sm flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    YOLO Detection ({yoloDevice.toUpperCase()})
+                  </div>
+                )}
               </div>
             )}
 
