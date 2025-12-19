@@ -126,7 +126,8 @@
       "Bash(start \"\" \"D:\\\\Ibrokhim projects\\\\Ceo\\\\face-quiz\\\\backend\\\\data\\\\celebrities\\\\Ziyoda\\\\photo_33_2025-12-17_18-24-48.jpg\")",
       "Bash(powershell -Command \"Copy-Item -Force ''D:\\\\Ibrokhim projects\\\\Ceo\\\\face-quiz\\\\backend\\\\data\\\\celebrities\\\\Шахзода\\\\photo_2_2025-12-17_18-24-48.jpg'' ''D:\\\\Ibrokhim projects\\\\Ceo\\\\stario-platform\\\\apps\\\\web-frontend\\\\public\\\\celebrities\\\\shahzoda.jpg''\")",
       "Bash(\"D:\\\\Ibrokhim projects\\\\Ceo\\\\yolo-detection-api\\\\venv\\\\Scripts\\\\python.exe\" -m uvicorn:*)",
-      "Bash(start http://localhost:4001/face-quiz)"
+      "Bash(start http://localhost:4001/face-quiz)",
+      "Bash(docker system prune:*)"
     ],
     "deny": [],
     "ask": []
