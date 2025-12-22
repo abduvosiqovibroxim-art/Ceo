@@ -2,34 +2,9 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Webcam from 'react-webcam';
-import * as faceapi from 'face-api.js';
-import { yoloService } from '../services/yoloService';
+import { compareFaceFromDataUrl, checkHealth, CelebrityMatch } from '../services/deepFaceService';
 
-interface Celebrity {
-  id: string;
-  name: string;
-  name_uz: string;
-  percentage: number;
-  image: string;
-  descriptor?: Float32Array;
-}
-
-type AppState = 'loading_models' | 'choose' | 'camera' | 'loading' | 'results';
-
-// Celebrities database with real photos from face-quiz
-const celebritiesData: Omit<Celebrity, 'descriptor'>[] = [
-  { id: '1', name: 'Шахзода', name_uz: 'Shahzoda', percentage: 0, image: '/celebrities/shahzoda_v2.jpg' },
-  { id: '2', name: 'Зиёда', name_uz: 'Ziyoda', percentage: 0, image: '/celebrities/ziyoda_v2.jpg' },
-  { id: '3', name: 'Юлдуз Усмонова', name_uz: 'Yulduz Usmanova', percentage: 0, image: '/celebrities/yulduz_usmanova.jpg' },
-  { id: '4', name: 'Озода', name_uz: 'Ozoda', percentage: 0, image: '/celebrities/ozoda.jpg' },
-  { id: '5', name: 'Севара', name_uz: 'Sevara', percentage: 0, image: '/celebrities/sevara.jpg' },
-  { id: '6', name: 'Райхон', name_uz: 'Rayhon', percentage: 0, image: '/celebrities/rayhon.jpg' },
-  { id: '7', name: 'Лола', name_uz: 'Lola', percentage: 0, image: '/celebrities/lola.jpg' },
-  { id: '8', name: 'Муниса Ризаева', name_uz: 'Munisa Rizayeva', percentage: 0, image: '/celebrities/munisa_rizayeva.jpg' },
-  { id: '9', name: 'Тохир Содиков', name_uz: 'Tohir Sodiqov', percentage: 0, image: '/celebrities/tohir_sodiqov.jpg' },
-  { id: '10', name: 'Жасур Умиров', name_uz: 'Jasur Umirov', percentage: 0, image: '/celebrities/jasur_umirov.jpg' },
-  { id: '11', name: 'Фарух Закиров', name_uz: 'Farukh Zakirov', percentage: 0, image: '/celebrities/farukh_zakirov.jpg' },
-];
+type AppState = 'loading' | 'choose' | 'camera' | 'analyzing' | 'results';
 
 const translations = {
   uz: {
@@ -40,11 +15,14 @@ const translations = {
     capture: "Suratga olish",
     back: "Orqaga",
     analyzing: "Tahlil qilinmoqda...",
-    loadingModels: "AI modellar yuklanmoqda...",
+    loading: "AI tizimi yuklanmoqda...",
     results: "Sizga o'xshash yulduzlar:",
     tryAgain: "Qayta urinish",
-    noFace: "Yuz topilmadi",
-    error: "Xatolik yuz berdi"
+    noFace: "Yuz topilmadi. Yaxshi yoritilgan joyda qayta urinib ko'ring.",
+    error: "Xatolik yuz berdi",
+    disclaimer: "Bu o'yin ko'ngil ochish uchun. Natijalar taxminiy!",
+    apiOffline: "AI serveri ishlamayapti. Keyinroq urinib ko'ring.",
+    processingTime: "Tahlil vaqti"
   },
   ru: {
     title: "Face Quiz - Узбекские Звёзды",
@@ -54,11 +32,14 @@ const translations = {
     capture: "Сфотографировать",
     back: "Назад",
     analyzing: "Анализируем...",
-    loadingModels: "Загрузка AI моделей...",
+    loading: "Загрузка AI системы...",
     results: "Похожие на вас звёзды:",
     tryAgain: "Попробовать снова",
-    noFace: "Лицо не найдено",
-    error: "Произошла ошибка"
+    noFace: "Лицо не найдено. Попробуйте при хорошем освещении.",
+    error: "Произошла ошибка",
+    disclaimer: "Это игра для развлечения. Результаты приблизительны!",
+    apiOffline: "AI сервер недоступен. Попробуйте позже.",
+    processingTime: "Время анализа"
   },
   en: {
     title: "Face Quiz - Uzbek Stars",
@@ -68,21 +49,40 @@ const translations = {
     capture: "Take Photo",
     back: "Back",
     analyzing: "Analyzing...",
-    loadingModels: "Loading AI models...",
+    loading: "Loading AI system...",
     results: "Stars you look like:",
     tryAgain: "Try Again",
-    noFace: "No face detected",
-    error: "An error occurred"
+    noFace: "No face detected. Try in good lighting.",
+    error: "An error occurred",
+    disclaimer: "This is just for fun. Results are approximate!",
+    apiOffline: "AI server is offline. Try again later.",
+    processingTime: "Processing time"
   }
 };
 
-// Calculate similarity percentage from Euclidean distance
-function distanceToPercentage(distance: number): number {
-  // Euclidean distance typically ranges from 0 (identical) to ~1.2 (very different)
-  // Convert to percentage where 0 distance = 100%, 0.8+ distance = low match
-  const maxDistance = 0.8;
-  const percentage = Math.max(0, Math.min(100, (1 - distance / maxDistance) * 100));
-  return Math.round(percentage * 10) / 10;
+// Celebrity name mappings (folder name -> display names)
+const celebrityNames: Record<string, { ru: string; uz: string }> = {
+  'Shahzoda': { ru: 'Шахзода', uz: 'Shahzoda' },
+  'Ziyoda': { ru: 'Зиёда', uz: 'Ziyoda' },
+  'Yulduz Usmanova': { ru: 'Юлдуз Усмонова', uz: 'Yulduz Usmanova' },
+  'Ozoda': { ru: 'Озода', uz: 'Ozoda' },
+  'Sevara': { ru: 'Севара', uz: 'Sevara' },
+  'Rayhon': { ru: 'Райхон', uz: 'Rayhon' },
+  'Lola': { ru: 'Лола', uz: 'Lola' },
+  'Munisa Rizayeva': { ru: 'Муниса Ризаева', uz: 'Munisa Rizayeva' },
+  'Tohir Sodiqov': { ru: 'Тохир Содиков', uz: 'Tohir Sodiqov' },
+  'Jasur Umirov': { ru: 'Жасур Умиров', uz: 'Jasur Umirov' },
+  'Farukh Zakirov': { ru: 'Фарух Закиров', uz: 'Farukh Zakirov' },
+  'Ali Otajonov': { ru: 'Али Отажонов', uz: 'Ali Otajonov' },
+  'Dilsoz': { ru: 'Дильсоз', uz: 'Dilsoz' },
+  'Jahondi Poziljonov': { ru: 'Жахонгир Позилжонов', uz: 'Jahondi Poziljonov' },
+  'Ozodbek Nazarbekov': { ru: 'Озодбек Назарбеков', uz: 'Ozodbek Nazarbekov' },
+};
+
+function getCelebName(name: string, lang: string): string {
+  const mapping = celebrityNames[name];
+  if (!mapping) return name;
+  return lang === 'uz' ? mapping.uz : mapping.ru;
 }
 
 export default function FaceQuizPage() {
@@ -90,149 +90,58 @@ export default function FaceQuizPage() {
   const lang = (i18n.language?.substring(0, 2) || 'ru') as 'uz' | 'ru' | 'en';
   const t = translations[lang] || translations.ru;
 
-  const [state, setState] = useState<AppState>('loading_models');
-  const [results, setResults] = useState<Celebrity[]>([]);
+  const [state, setState] = useState<AppState>('loading');
+  const [results, setResults] = useState<CelebrityMatch[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
-  const [celebrities, setCelebrities] = useState<Celebrity[]>([]);
-  const [modelsLoaded, setModelsLoaded] = useState(false);
-  const [loadingProgress, setLoadingProgress] = useState(0);
-  const [yoloReady, setYoloReady] = useState(false);
-  const [yoloDevice, setYoloDevice] = useState<string>('');
+  const [apiReady, setApiReady] = useState(false);
+  const [celebritiesCount, setCelebritiesCount] = useState(0);
+  const [processingTime, setProcessingTime] = useState(0);
+
   const webcamRef = useRef<Webcam>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Load face-api models and celebrity face descriptors
+  // Check if DeepFace API is available
   useEffect(() => {
-    const loadModelsAndDescriptors = async () => {
+    const checkApi = async () => {
       try {
-        setLoadingProgress(5);
-
-        // Check YOLO API availability
-        try {
-          const health = await yoloService.healthCheck();
-          setYoloReady(health.model_loaded);
-          setYoloDevice(health.device);
-          console.log('YOLO API ready:', health);
-        } catch (err) {
-          console.warn('YOLO API not available, using browser-only detection');
-        }
-        setLoadingProgress(10);
-
-        // Load face-api.js models
-        await faceapi.nets.ssdMobilenetv1.loadFromUri('/models');
-        setLoadingProgress(30);
-
-        await faceapi.nets.faceLandmark68Net.loadFromUri('/models');
-        setLoadingProgress(50);
-
-        await faceapi.nets.faceRecognitionNet.loadFromUri('/models');
-        setLoadingProgress(70);
-
-        // Load celebrity face descriptors
-        const celebsWithDescriptors: Celebrity[] = [];
-
-        for (let i = 0; i < celebritiesData.length; i++) {
-          const celeb = celebritiesData[i];
-          try {
-            const img = await faceapi.fetchImage(celeb.image);
-            const detection = await faceapi
-              .detectSingleFace(img)
-              .withFaceLandmarks()
-              .withFaceDescriptor();
-
-            if (detection) {
-              celebsWithDescriptors.push({
-                ...celeb,
-                descriptor: detection.descriptor,
-              });
-            } else {
-              celebsWithDescriptors.push({ ...celeb });
-            }
-          } catch (err) {
-            console.warn(`Failed to load descriptor for ${celeb.name}:`, err);
-            celebsWithDescriptors.push({ ...celeb });
-          }
-          setLoadingProgress(70 + Math.round((i + 1) / celebritiesData.length * 30));
-        }
-
-        setCelebrities(celebsWithDescriptors);
-        setModelsLoaded(true);
+        const health = await checkHealth();
+        setApiReady(health.status === 'healthy');
+        setCelebritiesCount(health.celebrities_count);
         setState('choose');
       } catch (err) {
-        console.error('Failed to load models:', err);
-        setError(t.error);
+        console.error('DeepFace API not available:', err);
+        setError(t.apiOffline);
         setState('choose');
       }
     };
 
-    loadModelsAndDescriptors();
+    checkApi();
   }, []);
 
-  const analyzeImage = async (imageBlob: Blob) => {
-    setState('loading');
+  const analyzeImage = async (dataUrl: string) => {
+    setState('analyzing');
     setError(null);
 
     try {
-      // First, use YOLO API for person detection if available
-      if (yoloReady) {
-        try {
-          console.log('Using YOLO API for person detection...');
-          const yoloResult = await yoloService.detect(imageBlob);
-          console.log('YOLO detection result:', yoloResult);
+      const response = await compareFaceFromDataUrl(dataUrl);
 
-          if (!yoloService.hasPersonDetected(yoloResult)) {
-            setError(t.noFace);
-            setState('choose');
-            setPreviewImage(null);
-            return;
-          }
-        } catch (yoloErr) {
-          console.warn('YOLO detection failed, falling back to face-api:', yoloErr);
-        }
-      }
-
-      // Create image element from blob
-      const imageUrl = URL.createObjectURL(imageBlob);
-      const img = await faceapi.fetchImage(imageUrl);
-
-      // Detect face and get descriptor using face-api.js
-      const detection = await faceapi
-        .detectSingleFace(img)
-        .withFaceLandmarks()
-        .withFaceDescriptor();
-
-      URL.revokeObjectURL(imageUrl);
-
-      if (!detection) {
+      if (!response.face_detected) {
         setError(t.noFace);
         setState('choose');
         setPreviewImage(null);
         return;
       }
 
-      const userDescriptor = detection.descriptor;
-
-      // Compare with all celebrities
-      const matches: Celebrity[] = celebrities
-        .filter(celeb => celeb.descriptor)
-        .map(celeb => {
-          const distance = faceapi.euclideanDistance(userDescriptor, celeb.descriptor!);
-          return {
-            ...celeb,
-            percentage: distanceToPercentage(distance),
-          };
-        })
-        .sort((a, b) => b.percentage - a.percentage);
-
-      if (matches.length === 0) {
-        setError(t.error);
+      if (response.matches.length === 0) {
+        setError(t.noFace);
         setState('choose');
         setPreviewImage(null);
         return;
       }
 
-      setResults(matches);
+      setResults(response.matches);
+      setProcessingTime(response.processing_time_ms);
       setState('results');
     } catch (err) {
       console.error('Face analysis error:', err);
@@ -247,9 +156,8 @@ export default function FaceQuizPage() {
     if (!imageSrc) return;
 
     setPreviewImage(imageSrc);
-    const blob = await fetch(imageSrc).then(r => r.blob());
-    await analyzeImage(blob);
-  }, [celebrities, t]);
+    await analyzeImage(imageSrc);
+  }, [t]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -259,7 +167,7 @@ export default function FaceQuizPage() {
     reader.onload = async (event) => {
       const imageSrc = event.target?.result as string;
       setPreviewImage(imageSrc);
-      await analyzeImage(file);
+      await analyzeImage(imageSrc);
     };
     reader.readAsDataURL(file);
   };
@@ -269,14 +177,10 @@ export default function FaceQuizPage() {
     setResults([]);
     setError(null);
     setPreviewImage(null);
+    setProcessingTime(0);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
-  };
-
-  const getCelebName = (celeb: Celebrity) => {
-    if (lang === 'uz') return celeb.name_uz || celeb.name;
-    return celeb.name;
   };
 
   return (
@@ -292,17 +196,10 @@ export default function FaceQuizPage() {
       </div>
 
       <div className="flex flex-col items-center justify-center min-h-[60vh]">
-        {state === 'loading_models' && (
+        {state === 'loading' && (
           <div className="flex flex-col items-center gap-4">
             <div className="w-20 h-20 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-            <p className="text-white text-xl">{t.loadingModels}</p>
-            <div className="w-64 h-2 bg-gray-700 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-300"
-                style={{ width: `${loadingProgress}%` }}
-              ></div>
-            </div>
-            <p className="text-gray-400 text-sm">{loadingProgress}%</p>
+            <p className="text-white text-xl">{t.loading}</p>
           </div>
         )}
 
@@ -324,29 +221,21 @@ export default function FaceQuizPage() {
               {t.subtitle}
             </p>
 
-            {modelsLoaded && (
+            {apiReady && (
               <div className="flex flex-col gap-1 mb-2">
                 <div className="text-green-400 text-sm flex items-center gap-2">
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
-                  AI Face Recognition Ready
+                  DeepFace AI Ready ({celebritiesCount} celebrities)
                 </div>
-                {yoloReady && (
-                  <div className="text-cyan-400 text-sm flex items-center gap-2">
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                    YOLO Detection ({yoloDevice.toUpperCase()})
-                  </div>
-                )}
               </div>
             )}
 
             <div className="flex flex-col sm:flex-row gap-4">
               <button
                 onClick={() => setState('camera')}
-                disabled={!modelsLoaded}
+                disabled={!apiReady}
                 className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-4 px-8 rounded-full text-lg shadow-lg transition-all transform hover:scale-105 flex items-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -356,7 +245,7 @@ export default function FaceQuizPage() {
                 {t.camera}
               </button>
 
-              <label className={`bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold py-4 px-8 rounded-full text-lg shadow-lg transition-all transform hover:scale-105 cursor-pointer flex items-center gap-3 ${!modelsLoaded ? 'opacity-50 cursor-not-allowed' : ''}`}>
+              <label className={`bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-bold py-4 px-8 rounded-full text-lg shadow-lg transition-all transform hover:scale-105 cursor-pointer flex items-center gap-3 ${!apiReady ? 'opacity-50 cursor-not-allowed' : ''}`}>
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
@@ -366,7 +255,7 @@ export default function FaceQuizPage() {
                   type="file"
                   accept="image/*"
                   onChange={handleFileUpload}
-                  disabled={!modelsLoaded}
+                  disabled={!apiReady}
                   className="hidden"
                 />
               </label>
@@ -408,14 +297,14 @@ export default function FaceQuizPage() {
           </div>
         )}
 
-        {state === 'loading' && (
+        {state === 'analyzing' && (
           <div className="flex flex-col items-center gap-4">
             {previewImage && (
               <img src={previewImage} alt="Preview" className="w-40 h-40 rounded-2xl object-cover mb-4" />
             )}
             <div className="w-20 h-20 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
             <p className="text-white text-xl">{t.analyzing}</p>
-            <p className="text-gray-400 text-sm">AI face matching...</p>
+            <p className="text-gray-400 text-sm">DeepFace AI processing...</p>
           </div>
         )}
 
@@ -425,25 +314,19 @@ export default function FaceQuizPage() {
               <img src={previewImage} alt="Your photo" className="w-28 h-28 rounded-full object-cover border-4 border-purple-500" />
             )}
             <h2 className="text-2xl font-bold text-white">{t.results}</h2>
+            <p className="text-gray-400 text-sm text-center italic -mt-2">{t.disclaimer}</p>
 
             <div className="grid gap-4 w-full px-4">
-              {results.map((celeb, index) => (
+              {results.map((match, index) => (
                 <div
-                  key={celeb.id}
+                  key={match.name}
                   className={`bg-white/10 backdrop-blur-lg rounded-xl p-4 flex items-center gap-4 ${
                     index === 0 ? 'border-2 border-yellow-400 shadow-lg shadow-yellow-400/20' : ''
                   }`}
                 >
                   <div className="relative">
-                    <div className="w-16 h-16 rounded-full bg-gray-700 flex items-center justify-center overflow-hidden">
-                      <img
-                        src={celeb.image}
-                        alt={celeb.name}
-                        className="w-16 h-16 rounded-full object-cover"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = 'none';
-                        }}
-                      />
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-2xl font-bold">
+                      {match.name.charAt(0)}
                     </div>
                     {index === 0 && (
                       <div className="absolute -top-2 -right-2 bg-yellow-400 text-black text-xs font-bold px-2 py-1 rounded-full">
@@ -453,28 +336,34 @@ export default function FaceQuizPage() {
                   </div>
 
                   <div className="flex-1">
-                    <h3 className="text-white font-bold text-lg">{getCelebName(celeb)}</h3>
+                    <h3 className="text-white font-bold text-lg">{getCelebName(match.name, lang)}</h3>
                     <div className="flex items-center gap-2 mt-1">
                       <div className="flex-1 bg-gray-700 rounded-full h-2">
                         <div
                           className={`h-2 rounded-full ${
-                            celeb.percentage >= 60 ? 'bg-gradient-to-r from-green-500 to-emerald-500' :
-                            celeb.percentage >= 40 ? 'bg-gradient-to-r from-yellow-500 to-orange-500' :
+                            match.percentage >= 60 ? 'bg-gradient-to-r from-green-500 to-emerald-500' :
+                            match.percentage >= 40 ? 'bg-gradient-to-r from-yellow-500 to-orange-500' :
                             'bg-gradient-to-r from-purple-500 to-pink-500'
                           }`}
-                          style={{ width: `${celeb.percentage}%` }}
+                          style={{ width: `${match.percentage}%` }}
                         ></div>
                       </div>
                       <span className={`font-bold ${
-                        celeb.percentage >= 60 ? 'text-green-400' :
-                        celeb.percentage >= 40 ? 'text-yellow-400' :
+                        match.percentage >= 60 ? 'text-green-400' :
+                        match.percentage >= 40 ? 'text-yellow-400' :
                         'text-purple-400'
-                      }`}>{celeb.percentage.toFixed(1)}%</span>
+                      }`}>{match.percentage.toFixed(1)}%</span>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
+
+            {processingTime > 0 && (
+              <p className="text-gray-500 text-xs">
+                {t.processingTime}: {(processingTime / 1000).toFixed(1)}s
+              </p>
+            )}
 
             <button
               onClick={reset}

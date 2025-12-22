@@ -98,50 +98,130 @@ export default function PosterMakerPage() {
     setSelectedStyle(style);
   };
 
-  // Generate poster
+  // Generate poster using Backend API
   const handleGenerate = async () => {
     if (!selectedActor || !selectedScene || !userPhoto || !selectedStyle) return;
 
     setStep('generating');
     setGeneratingProgress(0);
+    setError(null);
 
-    // Generate movie title
-    const title = movieTitle || generateMovieTitle();
-    setMovieTitle(title);
-
-    // Simulate progress
-    const progressInterval = setInterval(() => {
-      setGeneratingProgress(prev => {
-        if (prev >= 90) {
-          clearInterval(progressInterval);
-          return 90;
-        }
-        return prev + Math.random() * 15;
-      });
-    }, 500);
+    const POSTER_API = 'http://localhost:8007';
 
     try {
-      // Generate poster
-      const generator = new PosterGenerator();
-      const poster = await generator.generate(
-        userPhoto,
-        selectedActor,
-        selectedScene,
-        selectedStyle,
-        title
-      );
+      // Step 1: Upload face photo
+      setGeneratingProgress(10);
+      const blob = await fetch(userPhoto).then(r => r.blob());
+      const formData = new FormData();
+      formData.append('file', blob, 'photo.jpg');
 
-      clearInterval(progressInterval);
+      const uploadRes = await fetch(`${POSTER_API}/api/upload-face`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!uploadRes.ok) throw new Error('Ошибка загрузки фото');
+
+      const uploadData = await uploadRes.json();
+
+      setGeneratingProgress(30);
+
+      // Step 2: Start generation
+      // Map frontend actor ID to backend celebrity ID
+      const celebrityId = selectedActor.id.toLowerCase().replace(/ /g, '_');
+      // Map style to backend style ID (10 unique styles)
+      const templateMap: Record<string, string> = {
+        'romance': 'romance',
+        'action': 'action',
+        'blockbuster': 'blockbuster',
+        'drama': 'drama',
+        'noir': 'noir',
+        'neon': 'neon',
+        'comedy': 'romance',      // fallback to romance
+        'retro': 'retro80',
+        'netflix': 'netflix',
+        'minimal': 'minimalism',
+        'marvel': 'superhero',
+      };
+      const styleId = templateMap[selectedStyle.id] || 'blockbuster';
+
+      // Use FormData for the new API
+      const genFormData = new FormData();
+      genFormData.append('face_id', uploadData.face_id);
+      genFormData.append('celebrity_id', celebrityId);
+      genFormData.append('style', styleId);
+      if (movieTitle) {
+        genFormData.append('custom_title', movieTitle);
+      }
+
+      const genRes = await fetch(`${POSTER_API}/api/generate`, {
+        method: 'POST',
+        body: genFormData,
+      });
+
+      if (!genRes.ok) throw new Error('Ошибка запуска генерации');
+
+      const genData = await genRes.json();
+      const jobId = genData.job_id;
+
+      // Step 3: Poll for completion
+      let status = genData;
+      while (status.status === 'pending' || status.status === 'processing') {
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        const statusRes = await fetch(`${POSTER_API}/api/status/${jobId}`);
+        status = await statusRes.json();
+
+        setGeneratingProgress(Math.min(95, status.progress || 50));
+      }
+
+      if (status.status === 'failed') {
+        throw new Error(status.error || 'Генерация не удалась');
+      }
+
       setGeneratingProgress(100);
 
-      setTimeout(() => {
-        setGeneratedPoster(poster);
-        setStep('result');
-      }, 500);
-    } catch (err) {
+      // Success!
+      const resultUrl = `${POSTER_API}${status.result_url}`;
+      setGeneratedPoster({
+        imageUrl: resultUrl,
+        width: 768,
+        height: 1024,
+        actorName: selectedActor.name,
+        styleName: selectedStyle.name,
+        movieTitle: status.title || movieTitle || 'Кино',
+      });
+
+      setTimeout(() => setStep('result'), 500);
+
+    } catch (err: any) {
       console.error('Generation error:', err);
-      setError('Ошибка при создании постера. Попробуйте снова.');
-      setStep('style');
+
+      // Fallback to client-side generation
+      console.log('Falling back to client-side generation...');
+      try {
+        const title = movieTitle || generateMovieTitle();
+        setMovieTitle(title);
+
+        const generator = new PosterGenerator();
+        const poster = await generator.generate(
+          userPhoto,
+          selectedActor,
+          selectedScene,
+          selectedStyle,
+          title
+        );
+
+        setGeneratingProgress(100);
+        setTimeout(() => {
+          setGeneratedPoster(poster);
+          setStep('result');
+        }, 500);
+      } catch (fallbackErr) {
+        console.error('Fallback error:', fallbackErr);
+        setError(err.message || 'Ошибка при создании постера');
+        setStep('style');
+      }
     }
   };
 

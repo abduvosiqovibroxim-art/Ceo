@@ -525,7 +525,10 @@ export function generateMovieTitle(): string {
 export async function analyzePhoto(imageData: string): Promise<PhotoAnalysis> {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    img.crossOrigin = 'anonymous';
+    // Only set crossOrigin for external URLs
+    if (imageData.startsWith('http') && !imageData.includes('localhost')) {
+      img.crossOrigin = 'anonymous';
+    }
 
     img.onload = async () => {
       const canvas = document.createElement('canvas');
@@ -654,60 +657,25 @@ export class PosterGenerator {
     style: PosterStyle,
     movieTitle: string
   ): Promise<GeneratedPoster> {
+    console.log('Starting poster generation...', { actor: actor.name, style: style.name });
+
     // Clear canvas
     this.ctx.fillStyle = '#000000';
     this.ctx.fillRect(0, 0, this.POSTER_WIDTH, this.POSTER_HEIGHT);
 
-    // Create gradient background
-    const gradient = this.ctx.createLinearGradient(0, 0, 0, this.POSTER_HEIGHT);
-    gradient.addColorStop(0, '#1a1a2e');
-    gradient.addColorStop(0.5, '#16213e');
-    gradient.addColorStop(1, '#0f0f23');
-    this.ctx.fillStyle = gradient;
-    this.ctx.fillRect(0, 0, this.POSTER_WIDTH, this.POSTER_HEIGHT);
-
-    // Load images
+    // Load images first
+    console.log('Loading images...', { actorImage: actor.image });
     const [actorImg, userImg] = await Promise.all([
       this.loadImage(actor.image),
       this.loadImage(userPhoto)
     ]);
+    console.log('Images loaded successfully');
 
-    // Draw actor
-    const actorPos = scene.actorPosition;
-    await this.drawPerson(
-      actorImg,
-      actorPos.x / 100 * this.POSTER_WIDTH,
-      actorPos.y / 100 * this.POSTER_HEIGHT,
-      actorPos.width / 100 * this.POSTER_WIDTH,
-      actorPos.height / 100 * this.POSTER_HEIGHT,
-      style
-    );
-
-    // Draw user
-    const userPos = scene.userPosition;
-    await this.drawPerson(
-      userImg,
-      userPos.x / 100 * this.POSTER_WIDTH,
-      userPos.y / 100 * this.POSTER_HEIGHT,
-      userPos.width / 100 * this.POSTER_WIDTH,
-      userPos.height / 100 * this.POSTER_HEIGHT,
-      style
-    );
-
-    // Apply style filters
-    this.applyFilters(style.filters);
-
-    // Add overlays based on style
-    this.addStyleOverlay(style);
-
-    // Add typography
-    this.addTypography(movieTitle, actor.name, style);
-
-    // Add watermark
-    this.addWatermark();
+    // Create cinematic poster composition
+    await this.createCinematicPoster(actorImg, userImg, style, movieTitle, actor.name);
 
     return {
-      imageUrl: this.canvas.toDataURL('image/jpeg', 0.92),
+      imageUrl: this.canvas.toDataURL('image/jpeg', 0.95),
       width: this.POSTER_WIDTH,
       height: this.POSTER_HEIGHT,
       actorName: actor.name,
@@ -716,31 +684,100 @@ export class PosterGenerator {
     };
   }
 
-  private loadImage(src: string): Promise<HTMLImageElement> {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = () => resolve(img);
-      img.onerror = reject;
-      img.src = src;
-    });
+  private async createCinematicPoster(
+    actorImg: HTMLImageElement,
+    userImg: HTMLImageElement,
+    style: PosterStyle,
+    movieTitle: string,
+    actorName: string
+  ): Promise<void> {
+    const W = this.POSTER_WIDTH;
+    const H = this.POSTER_HEIGHT;
+
+    // 1. Create dramatic background gradient based on style
+    this.createDramaticBackground(style);
+
+    // 2. Draw celebrity as main/background figure (larger, slightly faded)
+    this.drawMainFigure(actorImg, 0, H * 0.05, W * 0.65, H * 0.75, 0.9, 'left');
+
+    // 3. Draw user as foreground figure (smaller, overlapping)
+    this.drawMainFigure(userImg, W * 0.35, H * 0.15, W * 0.65, H * 0.7, 1.0, 'right');
+
+    // 4. Add dramatic lighting overlay
+    this.addDramaticLighting(style);
+
+    // 5. Apply color grading
+    this.applyFilters(style.filters);
+
+    // 6. Add film grain effect for cinematic look
+    this.addFilmGrain(0.03);
+
+    // 7. Add vignette
+    this.addVignette();
+
+    // 8. Add typography
+    this.addCinematicTypography(movieTitle, actorName, style);
+
+    // 9. Add watermark
+    this.addWatermark();
   }
 
-  private async drawPerson(
+  private createDramaticBackground(style: PosterStyle): void {
+    const W = this.POSTER_WIDTH;
+    const H = this.POSTER_HEIGHT;
+
+    // Base gradient
+    let colors: string[];
+    switch (style.id) {
+      case 'action':
+        colors = ['#1a0a0a', '#2d1810', '#1a0505'];
+        break;
+      case 'romance':
+        colors = ['#1a0a1a', '#2d1020', '#150815'];
+        break;
+      case 'neon':
+        colors = ['#0a0a1a', '#100520', '#05051a'];
+        break;
+      case 'noir':
+        colors = ['#0a0a0a', '#151515', '#080808'];
+        break;
+      case 'drama':
+        colors = ['#0a0a15', '#101525', '#050510'];
+        break;
+      default:
+        colors = ['#0f0a1a', '#1a1030', '#0a0515'];
+    }
+
+    const gradient = this.ctx.createLinearGradient(0, 0, W * 0.3, H);
+    gradient.addColorStop(0, colors[0]);
+    gradient.addColorStop(0.5, colors[1]);
+    gradient.addColorStop(1, colors[2]);
+    this.ctx.fillStyle = gradient;
+    this.ctx.fillRect(0, 0, W, H);
+
+    // Add subtle texture
+    const gradient2 = this.ctx.createRadialGradient(W * 0.3, H * 0.3, 0, W * 0.3, H * 0.3, H);
+    gradient2.addColorStop(0, 'rgba(255,255,255,0.03)');
+    gradient2.addColorStop(1, 'rgba(0,0,0,0)');
+    this.ctx.fillStyle = gradient2;
+    this.ctx.fillRect(0, 0, W, H);
+  }
+
+  private drawMainFigure(
     img: HTMLImageElement,
     x: number,
     y: number,
     width: number,
     height: number,
-    _style: PosterStyle
-  ): Promise<void> {
-    // Create temporary canvas for processing
+    opacity: number,
+    fadeDirection: 'left' | 'right'
+  ): void {
     const tempCanvas = document.createElement('canvas');
     const tempCtx = tempCanvas.getContext('2d')!;
     tempCanvas.width = width;
     tempCanvas.height = height;
 
-    // Calculate crop to focus on face/upper body
+    // Calculate crop to focus on upper body/face
     const sourceAspect = img.width / img.height;
     const targetAspect = width / height;
 
@@ -751,31 +788,156 @@ export class PosterGenerator {
       sx = (img.width - sw) / 2;
     } else {
       sh = img.width / targetAspect;
-      sy = 0; // Keep top of image (face area)
+      sy = 0;
     }
 
     tempCtx.drawImage(img, sx, sy, sw, sh, 0, 0, width, height);
 
-    // Add vignette effect
-    const vignetteGradient = tempCtx.createRadialGradient(
-      width / 2, height / 2, height * 0.3,
-      width / 2, height / 2, height * 0.8
+    // Create horizontal fade gradient
+    const fadeGradient = tempCtx.createLinearGradient(
+      fadeDirection === 'left' ? width * 0.6 : 0,
+      0,
+      fadeDirection === 'left' ? width : width * 0.4,
+      0
     );
-    vignetteGradient.addColorStop(0, 'rgba(0,0,0,0)');
-    vignetteGradient.addColorStop(1, 'rgba(0,0,0,0.4)');
-    tempCtx.fillStyle = vignetteGradient;
+    fadeGradient.addColorStop(0, 'rgba(0,0,0,0)');
+    fadeGradient.addColorStop(1, 'rgba(0,0,0,0.8)');
+    tempCtx.fillStyle = fadeGradient;
+    tempCtx.globalCompositeOperation = 'destination-out';
     tempCtx.fillRect(0, 0, width, height);
+    tempCtx.globalCompositeOperation = 'source-over';
 
-    // Draw to main canvas with soft edges
-    this.ctx.save();
+    // Create bottom fade
+    const bottomFade = tempCtx.createLinearGradient(0, height * 0.7, 0, height);
+    bottomFade.addColorStop(0, 'rgba(0,0,0,0)');
+    bottomFade.addColorStop(1, 'rgba(0,0,0,1)');
+    tempCtx.fillStyle = bottomFade;
+    tempCtx.globalCompositeOperation = 'destination-out';
+    tempCtx.fillRect(0, 0, width, height);
+    tempCtx.globalCompositeOperation = 'source-over';
 
-    // Create mask for soft edges
-    const maskGradient = this.ctx.createLinearGradient(x, y + height - 50, x, y + height);
-    maskGradient.addColorStop(0, 'rgba(255,255,255,1)');
-    maskGradient.addColorStop(1, 'rgba(255,255,255,0)');
+    // Draw to main canvas
+    this.ctx.globalAlpha = opacity;
+    this.ctx.drawImage(tempCanvas, x, y);
+    this.ctx.globalAlpha = 1.0;
+  }
 
-    this.ctx.drawImage(tempCanvas, x, y, width, height);
-    this.ctx.restore();
+  private addDramaticLighting(style: PosterStyle): void {
+    const W = this.POSTER_WIDTH;
+    const H = this.POSTER_HEIGHT;
+
+    // Add rim light effect
+    const rimLight = this.ctx.createLinearGradient(0, 0, W, 0);
+    const accentColor = style.typography.accentColor;
+    rimLight.addColorStop(0, `${accentColor}15`);
+    rimLight.addColorStop(0.5, 'rgba(0,0,0,0)');
+    rimLight.addColorStop(1, `${accentColor}10`);
+    this.ctx.fillStyle = rimLight;
+    this.ctx.fillRect(0, 0, W, H);
+
+    // Add spotlight from top
+    const spotlight = this.ctx.createRadialGradient(W * 0.5, -H * 0.2, 0, W * 0.5, -H * 0.2, H * 0.8);
+    spotlight.addColorStop(0, 'rgba(255,255,255,0.08)');
+    spotlight.addColorStop(1, 'rgba(0,0,0,0)');
+    this.ctx.fillStyle = spotlight;
+    this.ctx.fillRect(0, 0, W, H);
+  }
+
+  private addFilmGrain(intensity: number): void {
+    const imageData = this.ctx.getImageData(0, 0, this.POSTER_WIDTH, this.POSTER_HEIGHT);
+    const data = imageData.data;
+
+    for (let i = 0; i < data.length; i += 4) {
+      const noise = (Math.random() - 0.5) * intensity * 255;
+      data[i] = Math.max(0, Math.min(255, data[i] + noise));
+      data[i + 1] = Math.max(0, Math.min(255, data[i + 1] + noise));
+      data[i + 2] = Math.max(0, Math.min(255, data[i + 2] + noise));
+    }
+
+    this.ctx.putImageData(imageData, 0, 0);
+  }
+
+  private addVignette(): void {
+    const W = this.POSTER_WIDTH;
+    const H = this.POSTER_HEIGHT;
+
+    const vignette = this.ctx.createRadialGradient(W / 2, H / 2, H * 0.3, W / 2, H / 2, H * 0.9);
+    vignette.addColorStop(0, 'rgba(0,0,0,0)');
+    vignette.addColorStop(0.7, 'rgba(0,0,0,0.3)');
+    vignette.addColorStop(1, 'rgba(0,0,0,0.7)');
+    this.ctx.fillStyle = vignette;
+    this.ctx.fillRect(0, 0, W, H);
+  }
+
+  private addCinematicTypography(movieTitle: string, actorName: string, style: PosterStyle): void {
+    const W = this.POSTER_WIDTH;
+    const H = this.POSTER_HEIGHT;
+    const typo = style.typography;
+
+    // Bottom gradient for text area
+    const textBg = this.ctx.createLinearGradient(0, H - 280, 0, H);
+    textBg.addColorStop(0, 'rgba(0,0,0,0)');
+    textBg.addColorStop(0.3, 'rgba(0,0,0,0.7)');
+    textBg.addColorStop(1, 'rgba(0,0,0,0.95)');
+    this.ctx.fillStyle = textBg;
+    this.ctx.fillRect(0, H - 280, W, 280);
+
+    // Movie title with shadow
+    this.ctx.textAlign = 'center';
+    this.ctx.font = `bold ${typo.titleSize}px ${typo.titleFont}`;
+
+    // Text shadow
+    this.ctx.fillStyle = 'rgba(0,0,0,0.8)';
+    this.ctx.fillText(movieTitle.toUpperCase(), W / 2 + 2, H - 130 + 2);
+
+    // Main title
+    this.ctx.fillStyle = typo.titleColor;
+    this.ctx.fillText(movieTitle.toUpperCase(), W / 2, H - 130);
+
+    // Starring text
+    this.ctx.font = `300 14px ${typo.subtitleFont}`;
+    this.ctx.fillStyle = typo.subtitleColor;
+    this.ctx.fillText('В ГЛАВНЫХ РОЛЯХ', W / 2, H - 85);
+
+    // Actor names with accent
+    this.ctx.font = `600 22px ${typo.subtitleFont}`;
+    this.ctx.fillStyle = typo.accentColor;
+    this.ctx.fillText(`${actorName}  ·  Вы`, W / 2, H - 55);
+
+    // Coming soon
+    this.ctx.font = `300 12px ${typo.subtitleFont}`;
+    this.ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    this.ctx.fillText('СКОРО НА ВСЕХ ЭКРАНАХ', W / 2, H - 25);
+
+    // Top badge
+    this.ctx.font = `bold 12px ${typo.subtitleFont}`;
+    this.ctx.fillStyle = typo.accentColor;
+    const badgeText = `★ ${style.name.toUpperCase()} ★`;
+    const badgeWidth = this.ctx.measureText(badgeText).width + 24;
+
+    // Badge background
+    this.ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    this.ctx.fillRect(W / 2 - badgeWidth / 2, 20, badgeWidth, 28);
+
+    // Badge text
+    this.ctx.fillStyle = typo.accentColor;
+    this.ctx.fillText(badgeText, W / 2, 40);
+  }
+
+  private loadImage(src: string): Promise<HTMLImageElement> {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      // Only set crossOrigin for external URLs, not for local/data URLs
+      if (src.startsWith('http') && !src.includes('localhost')) {
+        img.crossOrigin = 'anonymous';
+      }
+      img.onload = () => resolve(img);
+      img.onerror = (err) => {
+        console.error('Failed to load image:', src, err);
+        reject(new Error(`Failed to load image: ${src}`));
+      };
+      img.src = src;
+    });
   }
 
   private applyFilters(filters: StyleFilters): void {
@@ -829,84 +991,6 @@ export class PosterGenerator {
     }
 
     this.ctx.putImageData(imageData, 0, 0);
-  }
-
-  private addStyleOverlay(style: PosterStyle): void {
-    // Add style-specific overlays
-    if (style.id === 'neon') {
-      // Neon glow effect
-      const gradient = this.ctx.createLinearGradient(0, 0, this.POSTER_WIDTH, this.POSTER_HEIGHT);
-      gradient.addColorStop(0, 'rgba(255, 0, 255, 0.1)');
-      gradient.addColorStop(0.5, 'rgba(0, 255, 255, 0.05)');
-      gradient.addColorStop(1, 'rgba(255, 0, 255, 0.1)');
-      this.ctx.fillStyle = gradient;
-      this.ctx.fillRect(0, 0, this.POSTER_WIDTH, this.POSTER_HEIGHT);
-    } else if (style.id === 'retro') {
-      // Retro scan lines
-      this.ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
-      for (let y = 0; y < this.POSTER_HEIGHT; y += 4) {
-        this.ctx.fillRect(0, y, this.POSTER_WIDTH, 2);
-      }
-    } else if (style.id === 'action') {
-      // Fire gradient at bottom
-      const fireGradient = this.ctx.createLinearGradient(0, this.POSTER_HEIGHT - 200, 0, this.POSTER_HEIGHT);
-      fireGradient.addColorStop(0, 'rgba(255, 100, 0, 0)');
-      fireGradient.addColorStop(0.5, 'rgba(255, 50, 0, 0.2)');
-      fireGradient.addColorStop(1, 'rgba(200, 0, 0, 0.4)');
-      this.ctx.fillStyle = fireGradient;
-      this.ctx.fillRect(0, this.POSTER_HEIGHT - 200, this.POSTER_WIDTH, 200);
-    }
-
-    // Top gradient for text visibility
-    const topGradient = this.ctx.createLinearGradient(0, 0, 0, 150);
-    topGradient.addColorStop(0, 'rgba(0, 0, 0, 0.6)');
-    topGradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    this.ctx.fillStyle = topGradient;
-    this.ctx.fillRect(0, 0, this.POSTER_WIDTH, 150);
-
-    // Bottom gradient for text
-    const bottomGradient = this.ctx.createLinearGradient(0, this.POSTER_HEIGHT - 300, 0, this.POSTER_HEIGHT);
-    bottomGradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
-    bottomGradient.addColorStop(0.5, 'rgba(0, 0, 0, 0.7)');
-    bottomGradient.addColorStop(1, 'rgba(0, 0, 0, 0.9)');
-    this.ctx.fillStyle = bottomGradient;
-    this.ctx.fillRect(0, this.POSTER_HEIGHT - 300, this.POSTER_WIDTH, 300);
-  }
-
-  private addTypography(movieTitle: string, actorName: string, style: PosterStyle): void {
-    const typo = style.typography;
-
-    // Movie title
-    this.ctx.font = `bold ${typo.titleSize}px ${typo.titleFont}`;
-    this.ctx.textAlign = 'center';
-
-    // Title shadow
-    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-    this.ctx.fillText(movieTitle.toUpperCase(), this.POSTER_WIDTH / 2 + 3, this.POSTER_HEIGHT - 150 + 3);
-
-    // Title
-    this.ctx.fillStyle = typo.titleColor;
-    this.ctx.fillText(movieTitle.toUpperCase(), this.POSTER_WIDTH / 2, this.POSTER_HEIGHT - 150);
-
-    // Starring line
-    this.ctx.font = `${16}px ${typo.subtitleFont}`;
-    this.ctx.fillStyle = typo.subtitleColor;
-    this.ctx.fillText('В ГЛАВНЫХ РОЛЯХ', this.POSTER_WIDTH / 2, this.POSTER_HEIGHT - 100);
-
-    // Actor names
-    this.ctx.font = `bold ${24}px ${typo.subtitleFont}`;
-    this.ctx.fillStyle = typo.accentColor;
-    this.ctx.fillText(`${actorName}  •  Вы`, this.POSTER_WIDTH / 2, this.POSTER_HEIGHT - 70);
-
-    // Coming soon
-    this.ctx.font = `${14}px ${typo.subtitleFont}`;
-    this.ctx.fillStyle = typo.subtitleColor;
-    this.ctx.fillText('СКОРО НА ВСЕХ ЭКРАНАХ', this.POSTER_WIDTH / 2, this.POSTER_HEIGHT - 35);
-
-    // Top text (genre badge)
-    this.ctx.font = `bold ${14}px ${typo.subtitleFont}`;
-    this.ctx.fillStyle = typo.accentColor;
-    this.ctx.fillText(`★ ${style.name.toUpperCase()} ★`, this.POSTER_WIDTH / 2, 40);
   }
 
   private addWatermark(): void {

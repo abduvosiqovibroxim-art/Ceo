@@ -75,7 +75,10 @@ class ImageDetector {
   async detectFromDataUrl(dataUrl: string): Promise<DetectionResult> {
     return new Promise((resolve, reject) => {
       const img = new Image();
-      img.crossOrigin = 'anonymous';
+      // Only set crossOrigin for external URLs
+      if (dataUrl.startsWith('http') && !dataUrl.includes('localhost')) {
+        img.crossOrigin = 'anonymous';
+      }
       img.onload = async () => {
         try {
           const result = await this.detect(img);

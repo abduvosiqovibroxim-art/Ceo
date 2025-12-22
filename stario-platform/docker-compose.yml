@@ -112,6 +112,24 @@ services:
       timeout: 10s
       retries: 3
 
+  face-quiz-backend:
+    build:
+      context: ../face-quiz/backend
+      dockerfile: Dockerfile
+    container_name: stario-face-quiz
+    ports:
+      - "8003:8003"
+    volumes:
+      - ../face-quiz/backend/data:/app/data
+    environment:
+      - TF_USE_LEGACY_KERAS=1
+      - TF_ENABLE_ONEDNN_OPTS=0
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8003/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
   # face-similarity service disabled - using face-quiz backend instead (port 8003)
   # face-similarity:
   #   build:
@@ -157,6 +175,7 @@ services:
       - "4001:4001"
     environment:
       - VITE_API_URL=http://localhost:8000
+      - VITE_FACE_API_URL=http://localhost:8003
 
   telegram-miniapp:
     build:
