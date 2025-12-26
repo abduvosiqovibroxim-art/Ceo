@@ -31,70 +31,60 @@ STYLES = {
         "name": "Блокбастер",
         "name_uz": "Blokbaster",
         "description": "Эпичный экшн как Мстители",
-        "titles": ["ПОСЛЕДНЯЯ БИТВА", "АРМАГЕДДОН", "КОНЕЦ СВЕТА", "АПОКАЛИПСИС"],
         "colors": {"primary": (255, 140, 0), "secondary": (0, 100, 200), "accent": (255, 200, 50)},
     },
     "noir": {
         "name": "Нуар",
         "name_uz": "Noir",
         "description": "Чёрно-белый детектив",
-        "titles": ["ТЕНИ ПРОШЛОГО", "ЧЁРНАЯ ВДОВА", "НОЧНОЙ ГОРОД", "ДЕТЕКТИВ"],
         "colors": {"primary": (255, 255, 255), "secondary": (100, 100, 100), "accent": (200, 50, 50)},
     },
     "neon": {
         "name": "Неон",
         "name_uz": "Neon",
         "description": "Киберпанк с неоновым светом",
-        "titles": ["НОЧНОЙ ДРАЙВ", "НЕОНОВЫЙ ГОРОД", "СИНТЕТИКА", "КИБЕРПАНК"],
         "colors": {"primary": (255, 0, 255), "secondary": (0, 255, 255), "accent": (255, 100, 200)},
     },
     "romance": {
         "name": "Романтика",
         "name_uz": "Romantika",
         "description": "Нежная любовная история",
-        "titles": ["ЛЮБОВЬ БЕЗ ГРАНИЦ", "ВМЕСТЕ НАВСЕГДА", "СУДЬБА ДВОИХ", "СЕРДЦЕ ПОМНИТ"],
         "colors": {"primary": (255, 200, 150), "secondary": (255, 150, 180), "accent": (255, 220, 180)},
     },
     "drama": {
         "name": "Драма",
         "name_uz": "Drama",
         "description": "Глубокая эмоциональная история",
-        "titles": ["СУДЬБА", "ПЕРЕКРЁСТОК", "НОВАЯ ЖИЗНЬ", "ВТОРОЙ ШАНС"],
         "colors": {"primary": (180, 180, 200), "secondary": (100, 120, 150), "accent": (200, 200, 220)},
     },
     "action": {
         "name": "Боевик",
         "name_uz": "Jangari",
         "description": "Жёсткий экшн как Джон Уик",
-        "titles": ["БЕЗ ПОЩАДЫ", "ТОЧКА НЕВОЗВРАТА", "КРАСНАЯ ЛИНИЯ", "ПОСЛЕДНИЙ БОЙ"],
         "colors": {"primary": (255, 50, 0), "secondary": (20, 20, 20), "accent": (255, 150, 0)},
     },
     "retro80": {
         "name": "Ретро 80-х",
         "name_uz": "Retro 80",
         "description": "Synthwave стиль VHS",
-        "titles": ["НАЗАД В БУДУЩЕЕ", "НОЧНОЙ РЕЙСЕР", "ЭЛЕКТРИК", "СИНТВЕЙВ"],
         "colors": {"primary": (255, 100, 150), "secondary": (100, 200, 255), "accent": (200, 100, 255)},
     },
     "netflix": {
         "name": "Netflix",
         "name_uz": "Netflix",
         "description": "Как обложка сериала Netflix",
-        "titles": ["СЕЗОН 1", "НОВЫЙ СЕРИАЛ", "ПРЕМЬЕРА", "ТОЛЬКО НА ЭКРАНАХ"],
         "colors": {"primary": (255, 255, 255), "secondary": (229, 9, 20), "accent": (200, 200, 200)},
     },
     "minimalism": {
         "name": "Минимализм",
         "name_uz": "Minimalizm",
         "description": "Чистый простой дизайн",
-        "titles": ["ТИШИНА", "МОМЕНТ", "ПРОСТОТА", "ГРАНЬ"],
         "colors": {"primary": (40, 40, 40), "secondary": (200, 200, 200), "accent": (100, 150, 200)},
     },
     "superhero": {
         "name": "Супергерой",
         "name_uz": "Superqahramon",
         "description": "Комиксовый стиль Marvel",
-        "titles": ["ГЕРОИ", "ЛИГА СПРАВЕДЛИВОСТИ", "СУПЕРСИЛА", "СПАСИТЕЛИ"],
         "colors": {"primary": (255, 220, 0), "secondary": (200, 0, 0), "accent": (0, 100, 200)},
     },
 }
@@ -703,101 +693,23 @@ class FaceSwapService:
         return result
 
     # ========================================================================
-    # TEXT RENDERING
+    # WATERMARK ONLY
     # ========================================================================
 
     def _add_poster_text(self, img: np.ndarray, celebrity_name: str,
                          style_id: str, custom_title: str = None) -> np.ndarray:
-        """Add text with style-specific typography."""
+        """Add only watermark - no other text."""
         img_pil = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
         draw = ImageDraw.Draw(img_pil)
         W, H = img_pil.size
 
-        style = STYLES.get(style_id, STYLES["blockbuster"])
-        colors = style["colors"]
-
-        # Get title
-        title = custom_title or random.choice(style["titles"])
-
-        # Load fonts
         try:
-            title_font = ImageFont.truetype("arial.ttf", 58)
-            subtitle_font = ImageFont.truetype("arial.ttf", 24)
             small_font = ImageFont.truetype("arial.ttf", 16)
         except:
-            title_font = ImageFont.load_default()
-            subtitle_font = ImageFont.load_default()
             small_font = ImageFont.load_default()
 
-        # Bottom gradient for text readability
-        gradient = Image.new('RGBA', (W, 280), (0, 0, 0, 0))
-        gradient_draw = ImageDraw.Draw(gradient)
-        for y in range(280):
-            alpha = int(255 * (y / 280) ** 1.5)
-            if style_id == "minimalism":
-                gradient_draw.line([(0, y), (W, y)], fill=(240, 240, 240, alpha))
-            else:
-                gradient_draw.line([(0, y), (W, y)], fill=(0, 0, 0, alpha))
-
-        img_pil = img_pil.convert('RGBA')
-        img_pil.paste(gradient, (0, H - 280), gradient)
-        img_pil = img_pil.convert('RGB')
-        draw = ImageDraw.Draw(img_pil)
-
-        # Draw title
-        title_bbox = draw.textbbox((0, 0), title, font=title_font)
-        title_w = title_bbox[2] - title_bbox[0]
-        title_x = (W - title_w) // 2
-        title_y = H - 200
-
-        # Style-specific text
-        if style_id == "neon":
-            for offset in range(8, 0, -2):
-                glow_color = colors["primary"]
-                draw.text((title_x, title_y), title, font=title_font,
-                         fill=glow_color, stroke_width=offset, stroke_fill=glow_color)
-            draw.text((title_x, title_y), title, font=title_font, fill=(255, 255, 255))
-        elif style_id == "noir":
-            draw.text((title_x + 2, title_y + 2), title, font=title_font, fill=(0, 0, 0))
-            draw.text((title_x, title_y), title, font=title_font, fill=(255, 255, 255))
-        elif style_id == "minimalism":
-            draw.text((title_x, title_y), title, font=title_font, fill=(40, 40, 40))
-        else:
-            draw.text((title_x + 3, title_y + 3), title, font=title_font, fill=(0, 0, 0))
-            draw.text((title_x, title_y), title, font=title_font, fill=(255, 255, 255))
-
-        # Starring line
-        starring = f"В главных ролях: {celebrity_name} и Вы"
-        star_bbox = draw.textbbox((0, 0), starring, font=subtitle_font)
-        star_w = star_bbox[2] - star_bbox[0]
-        star_color = (200, 180, 140) if style_id != "minimalism" else (100, 100, 100)
-        draw.text(((W - star_w) // 2, H - 120), starring, font=subtitle_font, fill=star_color)
-
-        # Tagline
-        tagline = "СКОРО НА ВСЕХ ЭКРАНАХ"
-        if style_id == "netflix":
-            tagline = "СМОТРИТЕ НА NETFLIX"
-        elif style_id == "romance":
-            tagline = "ИСТОРИЯ ЛЮБВИ"
-
-        tag_bbox = draw.textbbox((0, 0), tagline, font=small_font)
-        tag_w = tag_bbox[2] - tag_bbox[0]
-        tag_color = (150, 150, 150)
-        draw.text(((W - tag_w) // 2, H - 75), tagline, font=small_font, fill=tag_color)
-
-        # Watermark
-        draw.text((W - 120, H - 35), "stario.uz", font=small_font, fill=(100, 100, 100))
-
-        # Style badge
-        badge = f"★ {style['name']} ★"
-        badge_bbox = draw.textbbox((0, 0), badge, font=small_font)
-        badge_w = badge_bbox[2] - badge_bbox[0]
-
-        if style_id != "minimalism":
-            draw.rectangle([(W//2 - badge_w//2 - 15, 18), (W//2 + badge_w//2 + 15, 48)],
-                          fill=(0, 0, 0, 180))
-        draw.text(((W - badge_w) // 2, 22), badge, font=small_font,
-                 fill=colors.get("accent", (255, 200, 100)))
+        # Only watermark
+        draw.text((W - 80, H - 20), "stario.uz", font=small_font, fill=(255, 255, 255, 128))
 
         return cv2.cvtColor(np.array(img_pil), cv2.COLOR_RGB2BGR)
 
